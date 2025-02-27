@@ -1,247 +1,191 @@
-<form action="#">
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas 토끼 점프 게임</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background: #d0f4f7;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 2px solid #333;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #ff9966;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #ff7733;
+        }
+        button:active {
+            background-color: #ff5500;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="300"></canvas>
+    <button id="jumpButton">점프!</button>
 
-  <meta name="viewport" content="width=device-width, initial-scale=0.6, minimum-scale=0.5, maximum-scale=0.6, user-scalable=no">
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const jumpButton = document.getElementById('jumpButton');
 
-  
-  
-    <select name="languages" id="lang" style="width:275px;height:60px;font-size:30px;">
-      <option value="A">   </option>  
-      <option value="A">아메리카노</option>
-      <option value="A">카페 라떼</option>
-      <option value="A">바닐라 라떼</option>
-      <option value="A">카푸치노</option>
-      <option value="A">카페모카</option>
-      <option value="A">카라멜마끼야또</option>
-      <option value="A">헤이즐넛라떼</option>
-      <option value="A">망고스무디</option>
+        // 토끼 정보
+        const rabbit = {
+            x: 50,
+            y: 200,
+            width: 50,
+            height: 70,
+            dy: 0,
+            gravity: 0.5,
+            jumpPower: -15 // 점프 높이 증가!
+        };
 
-      <option value="A">망고요거트스무디</option>
-      <option value="A">플레요거트인스무디</option>
-      <option value="A">딸기요거트스무디</option>
-      <option value="A">키위요거트스무디</option>
-      <option value="A">바나나요거트스무디</option>
-      <option value="A">블루베리요거트스무디</option>
-      <option value="A">자몽요거트스무디</option>
-      
-      <option value="A">딸기주스</option>
-      <option value="A">키위주스</option>
-      <option value="A">망고주스</option>
-      <option value="A">블루베리주스</option>
-      <option value="A">바나나주스</option>
-      <option value="A">토마토주스</option>
-      <option value="A">딸바주스</option>
-      <option value="A">키바주스</option>
-      <option value="A">패션후르츠주스</option>
-      <option value="A">깔라만시주스</option>
-      <option value="A">자몽주스</option>
-    </select>
-    <select name="languages" id="lang" style="width:125px;height:60px;font-size:30px;">
-      <option value="A">   </option>  
-      <option value="A">HOT</option>
-      <option value="A">ICE</option>
-    </select>
-    <input type=text 	style="width:60px;height:60px;font-size:30px;" 	name=a 	value=0> 
-    <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="+" 	onClick="javascript:this.form.a.value++;"> 
-    <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="-" 	onClick="javascript:this.form.a.value--;">
-    <br><br>
+        // 장애물 리스트
+        const obstacles = [];
+        let score = 0;
+        let gameSpeed = 3;
 
-    <select name="languages" id="lang" style="width:275px;height:60px;font-size:30px;">
-      <option value="A">   </option>  
-      <option value="A">아메리카노</option>
-      <option value="A">카페 라떼</option>
-      <option value="A">바닐라 라떼</option>
-      <option value="A">카푸치노</option>
-      <option value="A">카페모카</option>
-      <option value="A">카라멜마끼야또</option>
-      <option value="A">헤이즐넛라떼</option>
-      <option value="A">망고스무디</option>
+        // 토끼 그리기
+        function drawRabbit() {
+            ctx.fillStyle = '#ffcc99';
+            ctx.fillRect(rabbit.x, rabbit.y, rabbit.width, rabbit.height);
 
-      <option value="A">망고요거트스무디</option>
-      <option value="A">플레요거트인스무디</option>
-      <option value="A">딸기요거트스무디</option>
-      <option value="A">키위요거트스무디</option>
-      <option value="A">바나나요거트스무디</option>
-      <option value="A">블루베리요거트스무디</option>
-      <option value="A">자몽요거트스무디</option>
-      
-      <option value="A">딸기주스</option>
-      <option value="A">키위주스</option>
-      <option value="A">망고주스</option>
-      <option value="A">블루베리주스</option>
-      <option value="A">바나나주스</option>
-      <option value="A">토마토주스</option>
-      <option value="A">딸바주스</option>
-      <option value="A">키바주스</option>
-      <option value="A">패션후르츠주스</option>
-      <option value="A">깔라만시주스</option>
-      <option value="A">자몽주스</option>
-    </select>
-    <select name="languages" id="lang" style="width:125px;height:60px;font-size:30px;">
-      <option value="A">   </option>      
-      <option value="A">HOT</option>
-      <option value="A">ICE</option>
-    </select>
-    <input type=text 	style="width:60px;height:60px;font-size:30px;" 	name=b 	value=0> 
-    <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="+" 	onClick="javascript:this.form.b.value++;"> 
-    <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="-" 	onClick="javascript:this.form.b.value--;">
-    <br><br>
+            // 귀
+            ctx.fillStyle = '#ff9999';
+            ctx.fillRect(rabbit.x + 10, rabbit.y - 30, 10, 30);
+            ctx.fillRect(rabbit.x + 30, rabbit.y - 30, 10, 30);
 
-    <select name="languages" id="lang" style="width:275px;height:60px;font-size:30px;">
-      <option value="A">   </option>      
-      <option value="A">아메리카노</option>
-      <option value="A">카페 라떼</option>
-      <option value="A">바닐라 라떼</option>
-      <option value="A">카푸치노</option>
-      <option value="A">카페모카</option>
-      <option value="A">카라멜마끼야또</option>
-      <option value="A">헤이즐넛라떼</option>
-      <option value="A">망고스무디</option>
+            // 눈
+            ctx.fillStyle = '#000';
+            ctx.fillRect(rabbit.x + 15, rabbit.y + 20, 5, 5);
+            ctx.fillRect(rabbit.x + 30, rabbit.y + 20, 5, 5);
+        }
 
-      
-      <option value="A">망고요거트스무디</option>
-      <option value="A">플레요거트인스무디</option>
-      <option value="A">딸기요거트스무디</option>
-      <option value="A">키위요거트스무디</option>
-      <option value="A">바나나요거트스무디</option>
-      <option value="A">블루베리요거트스무디</option>
-      <option value="A">자몽요거트스무디</option>
-      
-      <option value="A">딸기주스</option>
-      <option value="A">키위주스</option>
-      <option value="A">망고주스</option>
-      <option value="A">블루베리주스</option>
-      <option value="A">바나나주스</option>
-      <option value="A">토마토주스</option>
-      <option value="A">딸바주스</option>
-      <option value="A">키바주스</option>
-      <option value="A">패션후르츠주스</option>
-      <option value="A">깔라만시주스</option>
-      <option value="A">자몽주스</option>
-    </select>
-    <select name="languages" id="lang" style="width:125px;height:60px;font-size:30px;">
-        <option value="A">   </option>      
-        <option value="A">HOT</option>
-        <option value="A">ICE</option>
-    </select>
-    <input type=text 	style="width:60px;height:60px;font-size:30px;" 	name=c 	value=0> 
-    <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="+" 	onClick="javascript:this.form.c.value++;"> 
-    <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="-" 	onClick="javascript:this.form.c.value--;">
-    <br><br>
+        // 점프
+        function jump() {
+            if (rabbit.y === 200) {
+                rabbit.dy = rabbit.jumpPower;
+            }
+        }
 
-  <select name="languages" id="lang" style="width:275px;height:60px;font-size:30px;">
-      <option value="A">   </option>      
-      <option value="A">아메리카노</option>
-      <option value="A">카페 라떼</option>
-      <option value="A">바닐라 라떼</option>
-      <option value="A">카푸치노</option>
-      <option value="A">카페모카</option>
-      <option value="A">카라멜마끼야또</option>
-      <option value="A">헤이즐넛라떼</option>
-      <option value="A">망고스무디</option>
+        // 장애물 생성
+        function createObstacle() {
+            const obstacle = {
+                x: canvas.width,
+                y: 220, // 당근 크기 조정에 따라 높이 조정
+                width: 20, // 기존보다 작게
+                height: 35 // 기존보다 작게
+            };
+            obstacles.push(obstacle);
+        }
 
-      <option value="A">망고요거트스무디</option>
-      <option value="A">플레요거트인스무디</option>
-      <option value="A">딸기요거트스무디</option>
-      <option value="A">키위요거트스무디</option>
-      <option value="A">바나나요거트스무디</option>
-      <option value="A">블루베리요거트스무디</option>
-      <option value="A">자몽요거트스무디</option>
-      
-      <option value="A">딸기주스</option>
-      <option value="A">키위주스</option>
-      <option value="A">망고주스</option>
-      <option value="A">블루베리주스</option>
-      <option value="A">바나나주스</option>
-      <option value="A">토마토주스</option>
-      <option value="A">딸바주스</option>
-      <option value="A">키바주스</option>
-      <option value="A">패션후르츠주스</option>
-      <option value="A">깔라만시주스</option>
-      <option value="A">자몽주스</option>  
-  </select>
-  <select name="languages" id="lang" style="width:125px;height:60px;font-size:30px;">
-      <option value="A">   </option>      
-      <option value="A">HOT</option>
-      <option value="A">ICE</option>
-  </select>
-  <input type=text 	style="width:60px;height:60px;font-size:30px;" 	name=d 	value=0> 
-  <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="+" 	onClick="javascript:this.form.d.value++;"> 
-  <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="-" 	onClick="javascript:this.form.d.value--;">
-  <br><br>
+        // 당근 그리기
+        function drawCarrot(x, y, width, height) {
+            // 당근 몸통 (작아진 삼각형)
+            ctx.fillStyle = '#ff9933';
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + width / 2, y + height);
+            ctx.lineTo(x - width / 2, y + height);
+            ctx.closePath();
+            ctx.fill();
 
-  <select name="languages" id="lang" style="width:275px;height:60px;font-size:30px;">
-    <option value="A">   </option>      
-    <option value="A">아메리카노</option>
-    <option value="A">카페 라떼</option>
-    <option value="A">바닐라 라떼</option>
-    <option value="A">카푸치노</option>
-    <option value="A">카페모카</option>
-    <option value="A">카라멜마끼야또</option>
-    <option value="A">헤이즐넛라떼</option>
-    <option value="A">망고스무디</option>
+            // 당근 잎사귀 (크기 조정)
+            ctx.fillStyle = '#66cc33';
+            ctx.beginPath();
+            ctx.ellipse(x - 5, y - 5, 5, 10, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(x + 5, y - 5, 5, 10, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
-    <option value="A">망고요거트스무디</option>
-    <option value="A">플레요거트인스무디</option>
-    <option value="A">딸기요거트스무디</option>
-    <option value="A">키위요거트스무디</option>
-    <option value="A">바나나요거트스무디</option>
-    <option value="A">블루베리요거트스무디</option>
-    <option value="A">자몽요거트스무디</option>
-    
-    <option value="A">딸기주스</option>
-    <option value="A">키위주스</option>
-    <option value="A">망고주스</option>
-    <option value="A">블루베리주스</option>
-    <option value="A">바나나주스</option>
-    <option value="A">토마토주스</option>
-    <option value="A">딸바주스</option>
-    <option value="A">키바주스</option>
-    <option value="A">패션후르츠주스</option>
-    <option value="A">깔라만시주스</option>
-    <option value="A">자몽주스</option>
-  </select>
-  <select name="languages" id="lang" style="width:125px;height:60px;font-size:30px;">
-      <option value="A">   </option>      
-      <option value="A">HOT</option>
-      <option value="A">ICE</option>
-  </select>
-  <input type=text 	style="width:60px;height:60px;font-size:30px;" 	name=e 	value=0> 
-  <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="+" 	onClick="javascript:this.form.e.value++;"> 
-  <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="-" 	onClick="javascript:this.form.e.value--;">
-  <br><br>
+        // 장애물 그리기 및 이동
+        function drawObstacles() {
+            obstacles.forEach((obstacle, index) => {
+                obstacle.x -= gameSpeed;
 
+                // 당근 그리기
+                drawCarrot(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
 
-  <input name="query" 	style="width:275px;height:60px;font-size:30px;">
-  <select name="languages" id="lang" style="width:125px;height:60px;font-size:30px;">
-      <option value="A">   </option>      
-      <option value="A">HOT</option>
-      <option value="A">ICE</option>
-  </select>
-  <input type=text 	style="width:60px;height:60px;font-size:30px;" 	name=x 	value=0> 
-  <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="+" 	onClick="javascript:this.form.x.value++;"> 
-  <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="-" 	onClick="javascript:this.form.x.value--;">
-  <br><br>
+                // 충돌 감지
+                if (
+                    rabbit.x < obstacle.x + obstacle.width &&
+                    rabbit.x + rabbit.width > obstacle.x &&
+                    rabbit.y < obstacle.y + obstacle.height &&
+                    rabbit.y + rabbit.height > obstacle.y
+                ) {
+                    alert(`게임 오버! 점수: ${score}`);
+                    document.location.reload();
+                }
 
-  <input name="query" 	style="width:275px;height:60px;font-size:30px;">
-  <select name="languages" id="lang" style="width:125px;height:60px;font-size:30px;">
-      <option value="A">   </option>      
-      <option value="A">HOT</option>
-      <option value="A">ICE</option>
-  </select>
-  <input type=text 	style="width:60px;height:60px;font-size:30px;" 	name=y 	value=0> 
-  <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="+" 	onClick="javascript:this.form.y.value++;"> 
-  <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="-" 	onClick="javascript:this.form.y.value--;">
-  <br><br>
+                // 장애물 통과
+                if (obstacle.x + obstacle.width < 0) {
+                    obstacles.splice(index, 1);
+                    score++;
+                }
+            });
+        }
 
-  <input name="query" 	style="width:275px;height:60px;font-size:30px;">
-  <select name="languages" id="lang" style="width:125px;height:60px;font-size:30px;">
-      <option value="A">   </option>      
-      <option value="A">HOT</option>
-      <option value="A">ICE</option>
-  </select>
-  <input type=text 	style="width:60px;height:60px;font-size:30px;" 	name=z 	value=0> 
-  <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="+" 	onClick="javascript:this.form.z.value++;"> 
-  <input type=button 	style="width:60px;height:60px;font-size:30px;" 	value="-" 	onClick="javascript:this.form.z.value--;">
-  <br><br>
+        // 게임 점수 표시
+        function drawScore() {
+            ctx.fillStyle = '#000';
+            ctx.font = '20px Arial';
+            ctx.fillText(`점수: ${score}`, 10, 30);
+        }
 
-</form>
+        // 게임 업데이트
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 토끼 중력 적용
+            rabbit.y += rabbit.dy;
+            rabbit.dy += rabbit.gravity;
+
+            // 바닥에 닿으면 멈춤
+            if (rabbit.y > 200) {
+                rabbit.y = 200;
+                rabbit.dy = 0;
+            }
+
+            // 그리기
+            drawRabbit();
+            drawObstacles();
+            drawScore();
+
+            requestAnimationFrame(update);
+        }
+
+        // 장애물 생성 주기
+        setInterval(createObstacle, 2000);
+
+        // 점프 이벤트
+        document.addEventListener("keydown", (event) => {
+            if (event.code === "Space") jump();
+        });
+        document.addEventListener("click", jump);
+        jumpButton.addEventListener("click", jump);
+
+        // 게임 시작
+        update();
+    </script>
+</body>
+</html>
