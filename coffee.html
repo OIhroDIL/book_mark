@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>토끼 점프 게임 (반응형)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>토끼 점프 게임 (모바일 터치 지원)</title>
     <style>
         body {
             display: flex;
@@ -19,16 +19,19 @@
             border: 2px solid #333;
         }
         button {
-            margin-top: 10px;
-            padding: 10px 20px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
             background-color: #ff9966;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 50%;
             font-size: 20px;
             cursor: pointer;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
             transition: background 0.3s;
+            z-index: 10;
         }
         button:hover {
             background-color: #ff7733;
@@ -40,7 +43,7 @@
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
-    <button id="jumpButton">점프!</button>
+    <button id="jumpButton">▲</button>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -196,8 +199,10 @@
         document.addEventListener("keydown", (event) => {
             if (event.code === "Space") jump();
         });
-        document.addEventListener("click", jump);
         jumpButton.addEventListener("click", jump);
+        jumpButton.addEventListener("touchstart", jump);
+        canvas.addEventListener("click", jump);
+        canvas.addEventListener("touchstart", jump);
 
         // 게임 시작
         initGame();
