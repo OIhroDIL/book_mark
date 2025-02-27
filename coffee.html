@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canvas 토끼 점프 게임</title>
+    <title>토끼 점프 게임 (반응형)</title>
     <style>
         body {
             display: flex;
@@ -13,7 +13,7 @@
             height: 100vh;
             background: #d0f4f7;
             overflow: hidden;
-            font-family: Arial, sans-serif;
+            margin: 0;
         }
         canvas {
             border: 2px solid #333;
@@ -39,7 +39,7 @@
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="800" height="300"></canvas>
+    <canvas id="gameCanvas"></canvas>
     <button id="jumpButton">점프!</button>
 
     <script>
@@ -47,21 +47,40 @@
         const ctx = canvas.getContext('2d');
         const jumpButton = document.getElementById('jumpButton');
 
+        // 반응형 크기 설정
+        function resizeCanvas() {
+            canvas.width = window.innerWidth * 0.9;
+            canvas.height = window.innerHeight * 0.6;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
         // 토끼 정보
         const rabbit = {
             x: 50,
-            y: 200,
+            y: canvas.height - 100,
             width: 50,
             height: 70,
             dy: 0,
             gravity: 0.5,
-            jumpPower: -15 // 점프 높이 증가!
+            jumpPower: -15
         };
 
-        // 장애물 리스트
-        const obstacles = [];
+        // 게임 상태
+        let obstacles = [];
         let score = 0;
         let gameSpeed = 3;
+        let isGameOver = false;
+
+        // 게임 초기화 함수
+        function initGame() {
+            rabbit.y = canvas.height - 100;
+            rabbit.dy = 0;
+            obstacles = [];
+            score = 0;
+            gameSpeed = 3;
+            isGameOver = false;
+        }
 
         // 토끼 그리기
         function drawRabbit() {
@@ -81,7 +100,7 @@
 
         // 점프
         function jump() {
-            if (rabbit.y === 200) {
+            if (rabbit.y === canvas.height - 100) {
                 rabbit.dy = rabbit.jumpPower;
             }
         }
@@ -90,16 +109,15 @@
         function createObstacle() {
             const obstacle = {
                 x: canvas.width,
-                y: 220, // 당근 크기 조정에 따라 높이 조정
-                width: 20, // 기존보다 작게
-                height: 35 // 기존보다 작게
+                y: canvas.height - 80,
+                width: 20,
+                height: 35
             };
             obstacles.push(obstacle);
         }
 
         // 당근 그리기
         function drawCarrot(x, y, width, height) {
-            // 당근 몸통 (작아진 삼각형)
             ctx.fillStyle = '#ff9933';
             ctx.beginPath();
             ctx.moveTo(x, y);
@@ -108,7 +126,6 @@
             ctx.closePath();
             ctx.fill();
 
-            // 당근 잎사귀 (크기 조정)
             ctx.fillStyle = '#66cc33';
             ctx.beginPath();
             ctx.ellipse(x - 5, y - 5, 5, 10, Math.PI / 4, 0, Math.PI * 2);
@@ -122,8 +139,6 @@
         function drawObstacles() {
             obstacles.forEach((obstacle, index) => {
                 obstacle.x -= gameSpeed;
-
-                // 당근 그리기
                 drawCarrot(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
 
                 // 충돌 감지
@@ -133,8 +148,7 @@
                     rabbit.y < obstacle.y + obstacle.height &&
                     rabbit.y + rabbit.height > obstacle.y
                 ) {
-                    alert(`게임 오버! 점수: ${score}`);
-                    document.location.reload();
+                    isGameOver = true;
                 }
 
                 // 장애물 통과
@@ -154,19 +168,20 @@
 
         // 게임 업데이트
         function update() {
+            if (isGameOver) {
+                initGame();
+            }
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 토끼 중력 적용
             rabbit.y += rabbit.dy;
             rabbit.dy += rabbit.gravity;
 
-            // 바닥에 닿으면 멈춤
-            if (rabbit.y > 200) {
-                rabbit.y = 200;
+            if (rabbit.y > canvas.height - 100) {
+                rabbit.y = canvas.height - 100;
                 rabbit.dy = 0;
             }
 
-            // 그리기
             drawRabbit();
             drawObstacles();
             drawScore();
@@ -185,6 +200,7 @@
         jumpButton.addEventListener("click", jump);
 
         // 게임 시작
+        initGame();
         update();
     </script>
 </body>
