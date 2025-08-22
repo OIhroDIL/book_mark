@@ -1,212 +1,210 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>토끼 점프 게임 (모바일 터치 지원)</title>
+<html lang="ko" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Coffee Orders · 커피 주문 리스트</title>
+    <meta name="description" content="내 커피 주문 모음" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Pretendard Variable","Inter","ui-sans-serif","system-ui"],
+            },
+            colors: {
+              primary: {500:"#6366f1",600:"#4f46e5",700:"#4338ca"},
+            },
+            boxShadow: { soft:"0 10px 25px -10px rgba(0,0,0,0.15)" }
+          },
+        },
+        darkMode: 'class'
+      };
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            height: 100vh;
-            background: #d0f4f7;
-            overflow: hidden;
-            margin: 0;
-        }
-        canvas {
-            border: 2px solid #333;
-        }
-        button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            background-color: #ff9966;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-            transition: background 0.3s;
-            z-index: 10;
-        }
-        button:hover {
-            background-color: #ff7733;
-        }
-        button:active {
-            background-color: #ff5500;
-        }
+      .card {transition: all .2s ease;}
+      .card:hover {transform: translateY(-3px); box-shadow:0 18px 40px -20px rgba(0,0,0,.35);}
+      .line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
     </style>
-</head>
-<body>
-    <canvas id="gameCanvas"></canvas>
-    <button id="jumpButton">▲</button>
+  </head>
+  <body class="bg-gradient-to-b from-white to-slate-50 text-slate-800 dark:from-slate-950 dark:to-slate-900 dark:text-slate-100 min-h-screen">
+    <div id="app" class="mx-auto max-w-6xl px-5">
+      <header class="sticky top-0 z-30 bg-white/70 dark:bg-slate-950/60 glass border-b">
+        <div class="flex items-center gap-3 py-4">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary-500 to-indigo-400 shadow-soft flex items-center justify-center text-white">
+            <i data-lucide="coffee" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1">
+            <h1 class="text-xl sm:text-2xl font-semibold">Coffee Orders</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">내가 마시는 커피 주문 기록</p>
+          </div>
+          <button id="themeToggle" class="px-3 py-2 rounded-xl border">테마</button>
+        </div>
+      </header>
+
+      <section class="py-6">
+        <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+          <div class="flex-1 relative">
+            <input id="search" type="search" placeholder="검색: 커피명, 설명, 태그…" class="w-full h-12 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/70 pl-11 pr-4 outline-none focus:ring-4 focus:ring-primary-200/60 dark:focus:ring-primary-700/40" />
+            <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          </div>
+          <div class="flex gap-2 overflow-x-auto py-1" id="tagBar"></div>
+          <button id="addBtn" class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 px-4 h-12 hover:bg-slate-50 dark:hover:bg-slate-800">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+            추가
+          </button>
+          <button id="clearAllBtn" class="inline-flex items-center gap-2 rounded-2xl border border-red-300 dark:border-red-700 px-4 h-12 text-red-600 hover:bg-red-50 dark:hover:bg-red-800/30">
+            <i data-lucide="trash-2" class="w-5 h-5"></i>
+            전체삭제
+          </button>
+        </div>
+      </section>
+
+      <main class="pb-10">
+        <div id="grid" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+      </main>
+
+      <section class="py-6 border-t">
+        <h2 class="font-semibold mb-2">결산</h2>
+        <div id="summary" class="text-sm"></div>
+      </section>
+
+      <footer class="py-10 text-center text-sm text-slate-400">Made with ☕</footer>
+    </div>
+
+    <!-- Dialog for Add/Edit -->
+    <dialog id="editor" class="rounded-2xl p-0 w-[min(500px,92vw)] bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-2xl">
+      <form method="dialog" class="p-5 space-y-4">
+        <div class="flex items-start justify-between">
+          <h3 class="text-lg font-semibold">커피 주문 추가</h3>
+          <button class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800" value="cancel" aria-label="닫기">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <div class="grid gap-4">
+          <label class="space-y-1">
+            <span class="text-sm text-slate-500">커피명</span>
+            <input id="f_title" required class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/70 px-3" />
+          </label>
+          <label class="space-y-1">
+            <span class="text-sm text-slate-500">옵션/설명</span>
+            <textarea id="f_desc" rows="2" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/70 px-3 py-2"></textarea>
+          </label>
+          <label class="space-y-1">
+            <span class="text-sm text-slate-500">태그 (쉼표로 구분)</span>
+            <input id="f_tags" placeholder="아이스, 라떼, 샷추가" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/70 px-3" />
+          </label>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button class="px-4 h-11 rounded-xl border border-slate-200 dark:border-slate-700" value="cancel">취소</button>
+          <button id="saveBtn" class="px-4 h-11 rounded-xl bg-primary-600 hover:bg-primary-700 text-white">저장</button>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="cardTpl">
+      <div class="card group block rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 p-4 shadow-soft">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0 flex-1">
+            <h3 class="font-medium truncate"></h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5"></p>
+          </div>
+          <div class="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+            <button class="edit p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="수정" type="button"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+            <button class="del p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="삭제" type="button"><i data-lucide="trash" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2"></div>
+      </div>
+    </template>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const jumpButton = document.getElementById('jumpButton');
+      const STORAGE_KEY = 'coffee_orders_v1';
+      const DEFAULT_DATA = [
+        { title: '아이스 아메리카노', desc: '샷추가 1, 톨사이즈', tags: ['ice','americano'] },
+        { title: '카페라떼', desc: '따뜻하게, 시럽 반만', tags: ['hot','latte'] },
+      ];
 
-        // 반응형 크기 설정
-        function resizeCanvas() {
-            canvas.width = window.innerWidth * 0.9;
-            canvas.height = window.innerHeight * 0.6;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+      const state = { items: [], query:'', tag:'all', editingIndex:null };
+      const $ = (sel,el=document)=>el.querySelector(sel);
 
-        // 토끼 정보
-        const rabbit = {
-            x: 50,
-            y: canvas.height - 100,
-            width: 50,
-            height: 70,
-            dy: 0,
-            gravity: 0.5,
-            jumpPower: -15
-        };
-
-        // 게임 상태
-        let obstacles = [];
-        let score = 0;
-        let gameSpeed = 3;
-        let isGameOver = false;
-
-        // 게임 초기화 함수
-        function initGame() {
-            rabbit.y = canvas.height - 100;
-            rabbit.dy = 0;
-            obstacles = [];
-            score = 0;
-            gameSpeed = 3;
-            isGameOver = false;
-        }
-
-        // 토끼 그리기
-        function drawRabbit() {
-            ctx.fillStyle = '#ffcc99';
-            ctx.fillRect(rabbit.x, rabbit.y, rabbit.width, rabbit.height);
-
-            // 귀
-            ctx.fillStyle = '#ff9999';
-            ctx.fillRect(rabbit.x + 10, rabbit.y - 30, 10, 30);
-            ctx.fillRect(rabbit.x + 30, rabbit.y - 30, 10, 30);
-
-            // 눈
-            ctx.fillStyle = '#000';
-            ctx.fillRect(rabbit.x + 15, rabbit.y + 20, 5, 5);
-            ctx.fillRect(rabbit.x + 30, rabbit.y + 20, 5, 5);
-        }
-
-        // 점프
-        function jump() {
-            if (rabbit.y === canvas.height - 100) {
-                rabbit.dy = rabbit.jumpPower;
-            }
-        }
-
-        // 장애물 생성
-        function createObstacle() {
-            const obstacle = {
-                x: canvas.width,
-                y: canvas.height - 80,
-                width: 20,
-                height: 35
-            };
-            obstacles.push(obstacle);
-        }
-
-        // 당근 그리기
-        function drawCarrot(x, y, width, height) {
-            ctx.fillStyle = '#ff9933';
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + width / 2, y + height);
-            ctx.lineTo(x - width / 2, y + height);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = '#66cc33';
-            ctx.beginPath();
-            ctx.ellipse(x - 5, y - 5, 5, 10, Math.PI / 4, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.ellipse(x + 5, y - 5, 5, 10, -Math.PI / 4, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        // 장애물 그리기 및 이동
-        function drawObstacles() {
-            obstacles.forEach((obstacle, index) => {
-                obstacle.x -= gameSpeed;
-                drawCarrot(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-
-                // 충돌 감지
-                if (
-                    rabbit.x < obstacle.x + obstacle.width &&
-                    rabbit.x + rabbit.width > obstacle.x &&
-                    rabbit.y < obstacle.y + obstacle.height &&
-                    rabbit.y + rabbit.height > obstacle.y
-                ) {
-                    isGameOver = true;
-                }
-
-                // 장애물 통과
-                if (obstacle.x + obstacle.width < 0) {
-                    obstacles.splice(index, 1);
-                    score++;
-                }
-            });
-        }
-
-        // 게임 점수 표시
-        function drawScore() {
-            ctx.fillStyle = '#000';
-            ctx.font = '20px Arial';
-            ctx.fillText(`점수: ${score}`, 10, 30);
-        }
-
-        // 게임 업데이트
-        function update() {
-            if (isGameOver) {
-                initGame();
-            }
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            rabbit.y += rabbit.dy;
-            rabbit.dy += rabbit.gravity;
-
-            if (rabbit.y > canvas.height - 100) {
-                rabbit.y = canvas.height - 100;
-                rabbit.dy = 0;
-            }
-
-            drawRabbit();
-            drawObstacles();
-            drawScore();
-
-            requestAnimationFrame(update);
-        }
-
-        // 장애물 생성 주기
-        setInterval(createObstacle, 2000);
-
-        // 점프 이벤트
-        document.addEventListener("keydown", (event) => {
-            if (event.code === "Space") jump();
+      function load(){ try{ const raw=localStorage.getItem(STORAGE_KEY); state.items=raw?JSON.parse(raw):DEFAULT_DATA; } catch{ state.items=DEFAULT_DATA; } }
+      function save(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(state.items)); }
+      function uniqueTags(){ const set=new Set(['all']); state.items.forEach(i=>(i.tags||[]).forEach(t=>set.add(t))); return [...set]; }
+      function renderTags(){
+        const bar=$('#tagBar'); bar.innerHTML='';
+        uniqueTags().forEach(t=>{
+          const btn=document.createElement('button');
+          btn.className='px-4 h-12 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm whitespace-nowrap '+(state.tag===t?'bg-slate-100 dark:bg-slate-800':'');
+          btn.textContent=t==='all'?'전체':`#${t}`;
+          btn.addEventListener('click',()=>{state.tag=t;render();});
+          bar.appendChild(btn);
         });
-        jumpButton.addEventListener("click", jump);
-        jumpButton.addEventListener("touchstart", jump);
-        canvas.addEventListener("click", jump);
-        canvas.addEventListener("touchstart", jump);
+      }
+      function renderGrid(){
+        const grid=$('#grid'); grid.innerHTML=''; const tpl=$('#cardTpl'); const q=state.query.trim().toLowerCase();
+        const filtered=state.items.filter(i=>{
+          const hitQ=!q||[i.title,i.desc,(i.tags||[]).join(',')].join(' ').toLowerCase().includes(q);
+          const hitT=state.tag==='all'||(i.tags||[]).includes(state.tag);
+          return hitQ&&hitT;
+        });
+        if(filtered.length===0){ grid.innerHTML=`<div class="col-span-full text-center text-slate-500 py-16">검색 결과가 없습니다 😿</div>`; return; }
+        filtered.forEach((item,idx)=>{
+          const node=tpl.content.cloneNode(true);
+          node.querySelector('h3').textContent=item.title;
+          node.querySelector('p').textContent=item.desc||'';
+          const tagsWrap=node.querySelector('div.mt-3'); (item.tags||[]).forEach(t=>{
+            const s=document.createElement('span'); s.className='px-2 py-1 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'; s.textContent=`#${t}`; tagsWrap.appendChild(s);
+          });
+          node.querySelector('.edit').addEventListener('click',(e)=>{e.preventDefault();openEditor(idx);});
+          node.querySelector('.del').addEventListener('click',(e)=>{e.preventDefault();del(idx);});
+          grid.appendChild(node);
+        });
+      }
+      function renderSummary(){
+        const wrap=$('#summary'); wrap.innerHTML='';
+        const map=new Map();
+        state.items.forEach(i=>{
+          const key=i.title+' | '+(i.desc||'');
+          map.set(key,(map.get(key)||0)+1);
+        });
+        if(map.size===0){ wrap.innerHTML='<p class="text-slate-400">주문 없음</p>'; return; }
+        const ul=document.createElement('ul'); ul.className='space-y-1';
+        map.forEach((count,key)=>{
+          const li=document.createElement('li'); li.textContent=`${key} : ${count}잔`; ul.appendChild(li);
+        });
+        wrap.appendChild(ul);
+      }
+      function render(){ renderTags(); renderGrid(); renderSummary(); }
+      function openEditor(index=null){
+        state.editingIndex=index;
+        const isNew=index===null;
+        $('#f_title').value=isNew?'':state.items[index].title;
+        $('#f_desc').value=isNew?'':(state.items[index].desc||'');
+        $('#f_tags').value=isNew?'':(state.items[index].tags||[]).join(', ');
+        $('#editor').showModal();
+      }
+      function del(index){ if(!confirm('정말 삭제할까요?')) return; state.items.splice(index,1); save(); render(); }
 
-        // 게임 시작
-        initGame();
-        update();
+      document.addEventListener('DOMContentLoaded',()=>{
+        const root=document.documentElement; const savedTheme=localStorage.getItem('theme');
+        if(savedTheme==='dark'||(!savedTheme&&window.matchMedia('(prefers-color-scheme: dark)').matches)){root.classList.add('dark');}
+        $('#themeToggle').addEventListener('click',()=>{root.classList.toggle('dark');localStorage.setItem('theme',root.classList.contains('dark')?'dark':'light');});
+        load(); render(); lucide.createIcons();
+        $('#search').addEventListener('input',(e)=>{state.query=e.target.value; renderGrid(); renderSummary();});
+        $('#addBtn').addEventListener('click',()=>openEditor());
+        $('#saveBtn').addEventListener('click',(e)=>{
+          e.preventDefault();
+          const title=$('#f_title').value.trim(); if(!title) return;
+          const desc=$('#f_desc').value.trim(); const tags=$('#f_tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+          const obj={title,desc,tags};
+          if(state.editingIndex===null) state.items.unshift(obj); else state.items[state.editingIndex]=obj;
+          save(); render(); $('#editor').close();
+        });
+        $('#clearAllBtn').addEventListener('click',()=>{ if(!confirm('정말 전체 삭제할까요?')) return; state.items=[]; save(); render(); });
+      });
     </script>
-</body>
+  </body>
 </html>
