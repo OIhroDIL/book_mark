@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>토끼 점프 게임 (모바일 터치 지원)</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background: #d0f4f7;
+            overflow: hidden;
+            margin: 0;
+        }
+        canvas {
+            border: 2px solid #333;
+        }
+        button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: #ff9966;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s;
+            z-index: 10;
+        }
+        button:hover {
+            background-color: #ff7733;
+        }
+        button:active {
+            background-color: #ff5500;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <button id="jumpButton">▲</button>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const jumpButton = document.getElementById('jumpButton');
+
+        // 반응형 크기 설정
+        function resizeCanvas() {
+            canvas.width = window.innerWidth * 0.9;
+            canvas.height = window.innerHeight * 0.6;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // 토끼 정보
+        const rabbit = {
+            x: 50,
+            y: canvas.height - 100,
+            width: 50,
+            height: 70,
+            dy: 0,
+            gravity: 0.5,
+            jumpPower: -15
+        };
+
+        // 게임 상태
+        let obstacles = [];
+        let score = 0;
+        let gameSpeed = 3;
+        let isGameOver = false;
+
+        // 게임 초기화 함수
+        function initGame() {
+            rabbit.y = canvas.height - 100;
+            rabbit.dy = 0;
+            obstacles = [];
+            score = 0;
+            gameSpeed = 3;
+            isGameOver = false;
+        }
+
+        // 토끼 그리기
+        function drawRabbit() {
+            ctx.fillStyle = '#ffcc99';
+            ctx.fillRect(rabbit.x, rabbit.y, rabbit.width, rabbit.height);
+
+            // 귀
+            ctx.fillStyle = '#ff9999';
+            ctx.fillRect(rabbit.x + 10, rabbit.y - 30, 10, 30);
+            ctx.fillRect(rabbit.x + 30, rabbit.y - 30, 10, 30);
+
+            // 눈
+            ctx.fillStyle = '#000';
+            ctx.fillRect(rabbit.x + 15, rabbit.y + 20, 5, 5);
+            ctx.fillRect(rabbit.x + 30, rabbit.y + 20, 5, 5);
+        }
+
+        // 점프
+        function jump() {
+            if (rabbit.y === canvas.height - 100) {
+                rabbit.dy = rabbit.jumpPower;
+            }
+        }
+
+        // 장애물 생성
+        function createObstacle() {
+            const obstacle = {
+                x: canvas.width,
+                y: canvas.height - 80,
+                width: 20,
+                height: 35
+            };
+            obstacles.push(obstacle);
+        }
+
+        // 당근 그리기
+        function drawCarrot(x, y, width, height) {
+            ctx.fillStyle = '#ff9933';
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + width / 2, y + height);
+            ctx.lineTo(x - width / 2, y + height);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#66cc33';
+            ctx.beginPath();
+            ctx.ellipse(x - 5, y - 5, 5, 10, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(x + 5, y - 5, 5, 10, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 장애물 그리기 및 이동
+        function drawObstacles() {
+            obstacles.forEach((obstacle, index) => {
+                obstacle.x -= gameSpeed;
+                drawCarrot(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+
+                // 충돌 감지
+                if (
+                    rabbit.x < obstacle.x + obstacle.width &&
+                    rabbit.x + rabbit.width > obstacle.x &&
+                    rabbit.y < obstacle.y + obstacle.height &&
+                    rabbit.y + rabbit.height > obstacle.y
+                ) {
+                    isGameOver = true;
+                }
+
+                // 장애물 통과
+                if (obstacle.x + obstacle.width < 0) {
+                    obstacles.splice(index, 1);
+                    score++;
+                }
+            });
+        }
+
+        // 게임 점수 표시
+        function drawScore() {
+            ctx.fillStyle = '#000';
+            ctx.font = '20px Arial';
+            ctx.fillText(`점수: ${score}`, 10, 30);
+        }
+
+        // 게임 업데이트
+        function update() {
+            if (isGameOver) {
+                initGame();
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            rabbit.y += rabbit.dy;
+            rabbit.dy += rabbit.gravity;
+
+            if (rabbit.y > canvas.height - 100) {
+                rabbit.y = canvas.height - 100;
+                rabbit.dy = 0;
+            }
+
+            drawRabbit();
+            drawObstacles();
+            drawScore();
+
+            requestAnimationFrame(update);
+        }
+
+        // 장애물 생성 주기
+        setInterval(createObstacle, 2000);
+
+        // 점프 이벤트
+        document.addEventListener("keydown", (event) => {
+            if (event.code === "Space") jump();
+        });
+        jumpButton.addEventListener("click", jump);
+        jumpButton.addEventListener("touchstart", jump);
+        canvas.addEventListener("click", jump);
+        canvas.addEventListener("touchstart", jump);
+
+        // 게임 시작
+        initGame();
+        update();
+    </script>
+</body>
+</html>
