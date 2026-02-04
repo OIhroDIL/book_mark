@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dino Runner (simple)</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { display: grid; place-items: center; background: #fff; font-family: system-ui, sans-serif; }
+    .wrap { width: min(900px, 95vw); }
+    canvas { width: 100%; height: auto; border: 1px solid #ddd; border-radius: 10px; }
+    .hint { margin-top: 10px; color: #555; font-size: 14px; display:flex; justify-content: space-between; gap:12px; flex-wrap:wrap; }
+    kbd { border: 1px solid #ccc; border-bottom-width: 2px; padding: 2px 6px; border-radius: 6px; background: #f8f8f8; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <canvas id="c" width="900" height="260"></canvas>
+    <div class="hint">
+      <div>
+        조작: <kbd>Space</kbd>/<kbd>↑</kbd> 점프, <kbd>↓</kbd> 숙이기, <kbd>R</kbd> 재시작
+      </div>
+      <div id="status"></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const statusEl = document.getElementById("status");
+
+  // ----- Utilities
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rand = (a, b) => a + Math.random() * (b - a);
+
+  // ----- Game constants
+  const W = canvas.width, H = canvas.height;
+  const GROUND_Y = 210;
+  const GRAVITY = 2200;          // px/s^2
+  const JUMP_V = 820;            // px/s
+  const START_SPEED = 320;       // px/s
+  const SPEED_INC = 4.0;         // px/s per second (difficulty ramp)
+
+  // ----- State
+  let keys = { up: false, down: false };
+  let last = performance.now();
+  let t = 0;
+
+  let game = null;
+
+  function reset() {
+    game = {
+      over: false,
+      score: 0,
+      hi: (game && game.hi) || 0,
+      speed: START_SPEED,
+      obstacles: [],
+      spawnIn: 0.9,
+      clouds: Array.from({length: 4}, () => ({
+        x: rand(0, W),
+        y: rand(20, 90),
+        s: rand(20, 40),
+        v: rand(20, 50),
+      })),
+      dino: {
+        x: 90,
+        y: GROUND_Y,
+        w: 34,
+        h: 40,
+        vy: 0,
+        onGround: true,
+        duck: false,
+        anim: 0
+      }
+    };
+  }
+
+  function spawnObstacle() {
+    // Simple cactus (two types)
+    const tall = Math.random() < 0.35;
+    const w = tall ? 16 : 12;
+    const h = tall ? 50 : 34;
+    game.obstacles.push({
+      x: W + 20,
+      y: GROUND_Y,
+      w,
+      h,
+      type: tall ? "tall" : "short"
+    });
+    // next spawn time depends on speed
+    const base = clamp(1.15 - (game.speed - START_SPEED) / 900, 0.55, 1.15);
+    game.spawnIn = rand(base * 0.65, base * 1.15);
+  }
+
+  function rectsOverlap(a, b) {
+    return !(a.x + a.w < b.x || b.x + b.w < a.x || a.y < b.y - b.h || b.y < a.y - a.h);
+  }
+
+  function dinoRect() {
+    const d = game.dino;
+    const duckH = 26;
+    const h = d.duck && d.onGround ? duckH : d.h;
+    return {
+      x: d.x,
+      y: d.y,
+      w: d.w + 6,
+      h: h
+    };
+  }
+
+  // ----- Input
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "ArrowUp" || e.code === "Space") keys.up = true;
+    if (e.code === "ArrowDown") keys.down = true;
+    if (e.code === "KeyR") {
+      reset();
+    }
+    if (game && game.over && (e.code === "Space" || e.code === "ArrowUp")) {
+      reset();
+    }
+  });
+  window.addEventListener("keyup", (e) => {
+    if (e.code === "ArrowUp" || e.code === "Space") keys.up = false;
+    if (e.code === "ArrowDown") keys.down = false;
+  });
+
+  // ----- Render helpers
+  function clear() {
+    ctx.clearRect(0, 0, W, H);
+  }
+
+  function drawGround() {
+    ctx.save();
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y + 1);
+    ctx.lineTo(W, GROUND_Y + 1);
+    ctx.stroke();
+
+    // little ground dots
+    ctx.fillStyle = "#111";
+    const step = 28;
+    const offset = (t * game.speed * 0.08) % step;
+    for (let x = -step; x < W + step; x += step) {
+      ctx.fillRect(x - offset, GROUND_Y + 10 + (Math.sin((x+offset)*0.02) * 2), 3, 3);
+    }
+    ctx.restore();
+  }
+
+  function drawCloud(cl) {
+    ctx.save();
+    ctx.fillStyle = "#888";
+    const x = cl.x, y = cl.y, s = cl.s;
+    // simple cloud blobs
+    ctx.beginPath();
+    ctx.ellipse(x, y, s, s*0.55, 0, 0, Math.PI*2);
+    ctx.ellipse(x + s*0.7, y + 2, s*0.8, s*0.55, 0, 0, Math.PI*2);
+    ctx.ellipse(x + s*1.3, y, s*0.7, s*0.5, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawObstacle(o) {
+    ctx.save();
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 2;
+    ctx.fillStyle = "#111";
+
+    // cactus body
+    const top = o.y - o.h;
+    ctx.strokeRect(o.x, top, o.w, o.h);
+
+    // arms for tall cactus
+    if (o.type === "tall") {
+      ctx.strokeRect(o.x - 10, top + 16, 10, 12);
+      ctx.strokeRect(o.x + o.w, top + 22, 10, 12);
+    }
+
+    ctx.restore();
+  }
+
+  function drawDino() {
+    const d = game.dino;
+    const duck = d.duck && d.onGround;
+    const h = duck ? 26 : d.h;
+    const yTop = d.y - h;
+
+    ctx.save();
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 2;
+
+    // body
+    ctx.strokeRect(d.x, yTop, d.w, h);
+
+    // head
+    ctx.strokeRect(d.x + d.w - 10, yTop + 4, 14, 12);
+
+    // eye
+    ctx.fillStyle = "#111";
+    ctx.fillRect(d.x + d.w + 1, yTop + 8, 2, 2);
+
+    // legs animation (simple)
+    const legY = d.y - 2;
+    const phase = (d.anim % 2);
+    ctx.beginPath();
+    ctx.moveTo(d.x + 8, legY);
+    ctx.lineTo(d.x + 8 + (phase ? 6 : -2), legY + 10);
+    ctx.moveTo(d.x + 20, legY);
+    ctx.lineTo(d.x + 20 + (phase ? -2 : 6), legY + 10);
+    if (!duck) ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawUI() {
+    ctx.save();
+    ctx.fillStyle = "#111";
+    ctx.font = "16px system-ui, sans-serif";
+    const s = Math.floor(game.score);
+    const hi = Math.floor(game.hi);
+    ctx.fillText(`SCORE ${String(s).padStart(5, "0")}`, 18, 26);
+    ctx.fillText(`HI ${String(hi).padStart(5, "0")}`, 18, 48);
+
+    if (game.over) {
+      ctx.font = "28px system-ui, sans-serif";
+      ctx.fillText("GAME OVER", W/2 - 85, H/2 - 10);
+      ctx.font = "16px system-ui, sans-serif";
+      ctx.fillText("Press R to restart", W/2 - 78, H/2 + 18);
+    }
+    ctx.restore();
+
+    statusEl.textContent = `speed ${Math.floor(game.speed)} px/s`;
+  }
+
+  // ----- Update
+  function update(dt) {
+    t += dt;
+
+    if (!game.over) {
+      // speed ramp + score
+      game.speed += SPEED_INC * dt;
+      game.score += (game.speed / 140) * dt;
+      game.hi = Math.max(game.hi, game.score);
+    }
+
+    // clouds
+    for (const cl of game.clouds) {
+      cl.x -= cl.v * dt;
+      if (cl.x < -120) {
+        cl.x = W + rand(20, 180);
+        cl.y = rand(20, 90);
+        cl.s = rand(20, 40);
+        cl.v = rand(20, 50);
+      }
+    }
+
+    // dino physics
+    const d = game.dino;
+    d.duck = keys.down;
+
+    if (!game.over) {
+      if ((keys.up) && d.onGround) {
+        d.vy = -JUMP_V;
+        d.onGround = false;
+      }
+    }
+
+    if (!d.onGround) {
+      d.vy += GRAVITY * dt;
+      d.y += d.vy * dt;
+      if (d.y >= GROUND_Y) {
+        d.y = GROUND_Y;
+        d.vy = 0;
+        d.onGround = true;
+      }
+    }
+
+    // run animation tick
+    if (!game.over && d.onGround) {
+      d.anim += dt * (game.speed / 120);
+    }
+
+    // obstacles
+    if (!game.over) {
+      game.spawnIn -= dt;
+      if (game.spawnIn <= 0) spawnObstacle();
+    }
+
+    for (const o of game.obstacles) {
+      o.x -= game.speed * dt;
+    }
+    game.obstacles = game.obstacles.filter(o => o.x + o.w > -40);
+
+    // collision
+    if (!game.over) {
+      const dr = dinoRect();
+      for (const o of game.obstacles) {
+        const or = { x: o.x, y: o.y, w: o.w, h: o.h };
+        if (rectsOverlap(dr, or)) {
+          game.over = true;
+          break;
+        }
+      }
+    }
+  }
+
+  function render() {
+    clear();
+
+    // sky baseline (optional)
+    ctx.save();
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+
+    for (const cl of game.clouds) drawCloud(cl);
+
+    drawGround();
+    for (const o of game.obstacles) drawObstacle(o);
+    drawDino();
+    drawUI();
+  }
+
+  function loop(now) {
+    const dt = Math.min(0.033, (now - last) / 1000);
+    last = now;
+
+    update(dt);
+    render();
+
+    requestAnimationFrame(loop);
+  }
+
+  reset();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
