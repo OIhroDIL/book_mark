@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pong Game</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --line: #475569;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 55%);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .wrap {
+      width: min(92vw, 920px);
+      display: grid;
+      gap: 14px;
+    }
+
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+      flex-wrap: wrap;
+    }
+
+    .score {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+
+    .score span {
+      display: inline-block;
+      min-width: 46px;
+      text-align: center;
+      font-size: 2rem;
+    }
+
+    .label-ai { color: var(--danger); }
+    .label-player { color: var(--accent); }
+
+    .controls {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .game-shell {
+      position: relative;
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 22px;
+      padding: 14px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      background: linear-gradient(180deg, #0b1220, #020617);
+      border-radius: 16px;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 14px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.5);
+      pointer-events: none;
+      transition: opacity 180ms ease;
+    }
+
+    .overlay.hidden { opacity: 0; }
+
+    .card {
+      text-align: center;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 22px 26px;
+      border-radius: 18px;
+      max-width: 420px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .card h1 {
+      margin: 0 0 10px;
+      font-size: 2rem;
+    }
+
+    .card p {
+      margin: 8px 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .hint {
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+
+    canvas {
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+  
+    .mobile-controls {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .ctrl-btn {
+      appearance: none;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(17, 24, 39, 0.92);
+      color: var(--text);
+      border-radius: 18px;
+      min-height: 72px;
+      padding: 14px 18px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .ctrl-btn:active,
+    .ctrl-btn.active {
+      transform: translateY(1px);
+      border-color: rgba(255, 255, 255, 0.35);
+      background: rgba(30, 41, 59, 0.96);
+    }
+
+    .start-btn {
+      min-width: 116px;
+      background: rgba(34, 197, 94, 0.16);
+    }
+
+    @media (max-width: 720px) {
+      .hud {
+        padding: 12px 14px;
+      }
+
+      .score {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .controls {
+        width: 100%;
+        text-align: center;
+      }
+
+      .game-shell {
+        padding: 10px;
+      }
+
+      .mobile-controls {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+
+      .ctrl-btn {
+        min-height: 76px;
+        font-size: 1rem;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hud">
+      <div class="score">
+        <div><span class="label-ai">COM</span> <span id="aiScore">0</span></div>
+        <div style="color:#64748b; font-size:1.25rem;">:</div>
+        <div><span class="label-player">YOU</span> <span id="playerScore">0</span></div>
+      </div>
+      <div class="controls">조작: 데스크톱은 마우스/↑↓, 모바일은 아래 버튼 &nbsp;·&nbsp; 시작/재시작: START 또는 스페이스</div>
+    </div>
+
+    <div class="game-shell">
+      <canvas id="game" width="900" height="520"></canvas>
+      <div id="overlay" class="overlay">
+        <div class="card">
+          <h1>Pong</h1>
+          <p>왼쪽은 컴퓨터, 오른쪽은 플레이어입니다.</p>
+          <p>공을 놓치면 상대 점수 +1</p>
+          <p class="hint">화면을 터치하거나 스페이스를 눌러 시작하세요</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-controls" aria-label="모바일 조작 버튼">
+      <button id="btnUp" class="ctrl-btn" type="button">▲ UP</button>
+      <button id="btnStart" class="ctrl-btn start-btn" type="button">START</button>
+      <button id="btnDown" class="ctrl-btn" type="button">▼ DOWN</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const overlay = document.getElementById('overlay');
+    const aiScoreEl = document.getElementById('aiScore');
+    const playerScoreEl = document.getElementById('playerScore');
+    const btnUp = document.getElementById('btnUp');
+    const btnDown = document.getElementById('btnDown');
+    const btnStart = document.getElementById('btnStart');
+
+    const state = {
+      running: false,
+      aiScore: 0,
+      playerScore: 0,
+      winningScore: 7,
+      playerMoveUp: false,
+      playerMoveDown: false,
+      lastTime: 0
+    };
+
+    const court = {
+      w: canvas.width,
+      h: canvas.height,
+      centerX: canvas.width / 2,
+      centerY: canvas.height / 2
+    };
+
+    const paddle = {
+      width: 14,
+      height: 110,
+      speed: 460,
+      margin: 24
+    };
+
+    const left = {
+      x: paddle.margin,
+      y: court.centerY - paddle.height / 2,
+      w: paddle.width,
+      h: paddle.height,
+      speed: 390
+    };
+
+    const right = {
+      x: court.w - paddle.margin - paddle.width,
+      y: court.centerY - paddle.height / 2,
+      w: paddle.width,
+      h: paddle.height,
+      speed: paddle.speed
+    };
+
+    const ball = {
+      x: court.centerX,
+      y: court.centerY,
+      r: 10,
+      baseSpeed: 330,
+      vx: 0,
+      vy: 0,
+      maxSpeed: 900
+    };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function resetBall(direction = 1) {
+      ball.x = court.centerX;
+      ball.y = court.centerY;
+      const angle = (Math.random() * 1.1 - 0.55);
+      const speed = ball.baseSpeed;
+      ball.vx = Math.cos(angle) * speed * direction;
+      ball.vy = Math.sin(angle) * speed;
+    }
+
+    function resetGame() {
+      state.aiScore = 0;
+      state.playerScore = 0;
+      left.y = court.centerY - left.h / 2;
+      right.y = court.centerY - right.h / 2;
+      aiScoreEl.textContent = '0';
+      playerScoreEl.textContent = '0';
+      resetBall(Math.random() > 0.5 ? 1 : -1);
+    }
+
+    function startGame() {
+      if (state.aiScore >= state.winningScore || state.playerScore >= state.winningScore) {
+        resetGame();
+      }
+      if (!state.running) {
+        state.running = true;
+        overlay.classList.add('hidden');
+      }
+    }
+
+    function setMoveState(direction, pressed) {
+      if (direction === 'up') {
+        state.playerMoveUp = pressed;
+      } else {
+        state.playerMoveDown = pressed;
+      }
+    }
+
+    function bindPressControl(button, direction) {
+      const press = (e) => {
+        setMoveState(direction, true);
+        button.classList.add('active');
+        if (e) e.preventDefault();
+      };
+
+      const release = (e) => {
+        setMoveState(direction, false);
+        button.classList.remove('active');
+        if (e) e.preventDefault();
+      };
+
+      button.addEventListener('pointerdown', press);
+      button.addEventListener('pointerup', release);
+      button.addEventListener('pointercancel', release);
+      button.addEventListener('pointerleave', release);
+      button.addEventListener('lostpointercapture', release);
+    }
+
+    function stopGame(message) {
+      state.running = false;
+      overlay.classList.remove('hidden');
+      overlay.querySelector('.card').innerHTML = `
+        <h1>${message}</h1>
+        <p>현재 점수: COM ${state.aiScore} : ${state.playerScore} YOU</p>
+        <p class="hint">화면을 터치하거나 스페이스를 눌러 다시 시작하세요</p>
+      `;
+    }
+
+    function scorePoint(side) {
+      if (side === 'player') {
+        state.playerScore += 1;
+        playerScoreEl.textContent = String(state.playerScore);
+      } else {
+        state.aiScore += 1;
+        aiScoreEl.textContent = String(state.aiScore);
+      }
+
+      if (state.playerScore >= state.winningScore) {
+        stopGame('플레이어 승리');
+        return;
+      }
+      if (state.aiScore >= state.winningScore) {
+        stopGame('컴퓨터 승리');
+        return;
+      }
+
+      resetBall(side === 'player' ? -1 : 1);
+      state.running = false;
+      overlay.classList.remove('hidden');
+      overlay.querySelector('.card').innerHTML = `
+        <h1>다음 서브</h1>
+        <p>COM ${state.aiScore} : ${state.playerScore} YOU</p>
+        <p class="hint">화면을 터치하거나 스페이스를 눌러 계속하세요</p>
+      `;
+    }
+
+    function updatePlayer(dt) {
+      let dy = 0;
+      if (state.playerMoveUp) dy -= right.speed * dt;
+      if (state.playerMoveDown) dy += right.speed * dt;
+      right.y = clamp(right.y + dy, 0, court.h - right.h);
+    }
+
+    function updateAI(dt) {
+      const target = ball.y - left.h / 2;
+      const diff = target - left.y;
+      const buffer = 12;
+      if (Math.abs(diff) > buffer) {
+        const direction = Math.sign(diff);
+        left.y += direction * left.speed * dt;
+      }
+      left.y = clamp(left.y, 0, court.h - left.h);
+    }
+
+    function paddleBounce(p) {
+      const relative = (ball.y - (p.y + p.h / 2)) / (p.h / 2);
+      const angle = relative * 1.05;
+      const currentSpeed = Math.min(Math.hypot(ball.vx, ball.vy) + 28, ball.maxSpeed);
+      const direction = p === left ? 1 : -1;
+      ball.vx = Math.cos(angle) * currentSpeed * direction;
+      ball.vy = Math.sin(angle) * currentSpeed;
+    }
+
+    function intersects(p) {
+      return (
+        ball.x + ball.r > p.x &&
+        ball.x - ball.r < p.x + p.w &&
+        ball.y + ball.r > p.y &&
+        ball.y - ball.r < p.y + p.h
+      );
+    }
+
+    function updateBall(dt) {
+      ball.x += ball.vx * dt;
+      ball.y += ball.vy * dt;
+
+      if (ball.y - ball.r <= 0) {
+        ball.y = ball.r;
+        ball.vy *= -1;
+      }
+      if (ball.y + ball.r >= court.h) {
+        ball.y = court.h - ball.r;
+        ball.vy *= -1;
+      }
+
+      if (intersects(left) && ball.vx < 0) {
+        ball.x = left.x + left.w + ball.r;
+        paddleBounce(left);
+      }
+      if (intersects(right) && ball.vx > 0) {
+        ball.x = right.x - ball.r;
+        paddleBounce(right);
+      }
+
+      if (ball.x + ball.r < 0) {
+        scorePoint('player');
+      } else if (ball.x - ball.r > court.w) {
+        scorePoint('ai');
+      }
+    }
+
+    function drawNet() {
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 4;
+      for (let y = 12; y < court.h; y += 28) {
+        ctx.beginPath();
+        ctx.moveTo(court.centerX, y);
+        ctx.lineTo(court.centerX, y + 16);
+        ctx.stroke();
+      }
+    }
+
+    function drawPaddle(p, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+    }
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.fillStyle = '#f8fafc';
+      ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawCourt() {
+      ctx.clearRect(0, 0, court.w, court.h);
+      drawNet();
+      drawPaddle(left, '#ef4444');
+      drawPaddle(right, '#22c55e');
+      drawBall();
+    }
+
+    function setPlayerPaddleFromClientY(clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleY = court.h / rect.height;
+      const y = (clientY - rect.top) * scaleY;
+      right.y = clamp(y - right.h / 2, 0, court.h - right.h);
+    }
+
+    function loop(timestamp) {
+      if (!state.lastTime) state.lastTime = timestamp;
+      const dt = Math.min((timestamp - state.lastTime) / 1000, 0.02);
+      state.lastTime = timestamp;
+
+      if (state.running) {
+        updatePlayer(dt);
+        updateAI(dt);
+        updateBall(dt);
+      }
+
+      drawCourt();
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'ArrowUp') {
+        state.playerMoveUp = true;
+        e.preventDefault();
+      } else if (e.code === 'ArrowDown') {
+        state.playerMoveDown = true;
+        e.preventDefault();
+      } else if (e.code === 'Space') {
+        startGame();
+        e.preventDefault();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'ArrowUp') state.playerMoveUp = false;
+      if (e.code === 'ArrowDown') state.playerMoveDown = false;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      setPlayerPaddleFromClientY(e.clientY);
+    });
+
+    canvas.addEventListener('click', () => startGame());
+    btnStart.addEventListener('click', () => startGame());
+
+    bindPressControl(btnUp, 'up');
+    bindPressControl(btnDown, 'down');
+
+    resetGame();
+    drawCourt();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
