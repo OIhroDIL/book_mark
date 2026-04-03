@@ -255,8 +255,8 @@
     };
 
     const paddle = {
-      width: 14,
-      height: 110,
+      width: 28,
+      height: 104,
       speed: 460,
       margin: 24
     };
@@ -462,9 +462,75 @@
       }
     }
 
-    function drawPaddle(p, color) {
+    function drawPaddle(p, color, isLeft) {
+      const headRadius = p.w * 0.9;
+      const headCx = isLeft ? p.x + p.w * 0.72 : p.x + p.w * 0.28;
+      const headCy = p.y + p.h / 2;
+
+      const neckLength = p.w * 0.34;
+      const neckHeight = p.h * 0.16;
+      const neckX = isLeft ? p.x - neckLength * 0.1 : p.x + p.w - neckLength * 0.9;
+      const neckY = headCy - neckHeight / 2;
+
+      const handleWidth = p.h * 0.46;
+      const handleHeight = p.w * 0.34;
+      const handleX = isLeft ? neckX - handleWidth * 0.88 : neckX + neckLength - handleWidth * 0.12;
+      const handleY = headCy - handleHeight / 2;
+      const gripColor = '#8b5a2b';
+      const gripLineColor = 'rgba(255, 240, 220, 0.28)';
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.24)';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 4;
+
+      ctx.fillStyle = gripColor;
+      ctx.beginPath();
+      ctx.roundRect(handleX, handleY, handleWidth, handleHeight, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.strokeStyle = gripLineColor;
+      ctx.lineWidth = 1.4;
+      for (let i = 1; i <= 4; i += 1) {
+        const gx = handleX + (handleWidth / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(gx, handleY + 3);
+        ctx.lineTo(gx, handleY + handleHeight - 3);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.fillStyle = '#d4a373';
+      ctx.beginPath();
+      ctx.roundRect(neckX, neckY, neckLength, neckHeight, 7);
+      ctx.fill();
+      ctx.stroke();
+
       ctx.fillStyle = color;
-      ctx.fillRect(p.x, p.y, p.w, p.h);
+      ctx.beginPath();
+      ctx.arc(headCx, headCy, headRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.beginPath();
+      ctx.arc(headCx - headRadius * 0.22, headCy - headRadius * 0.24, headRadius * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#5c3b1e';
+      const buttW = Math.max(8, handleWidth * 0.12);
+      const buttH = handleHeight * 0.9;
+      const buttX = isLeft ? handleX : handleX + handleWidth - buttW;
+      const buttY = handleY + (handleHeight - buttH) / 2;
+      ctx.beginPath();
+      ctx.roundRect(buttX, buttY, buttW, buttH, 6);
+      ctx.fill();
+
+      ctx.restore();
     }
 
     function drawBall() {
@@ -477,8 +543,8 @@
     function drawCourt() {
       ctx.clearRect(0, 0, court.w, court.h);
       drawNet();
-      drawPaddle(left, '#ef4444');
-      drawPaddle(right, '#22c55e');
+      drawPaddle(left, '#ef4444', true);
+      drawPaddle(right, '#111111', false);
       drawBall();
     }
 
