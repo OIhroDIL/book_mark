@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0C447C">
+<title>탁구 대진표 모바일 완성판</title>
+<style>
+:root{--bg:#f7f8fb;--panel:#fff;--line:#cfd6dd;--line-dark:#a8b0bb;--text:#111827;--sub:#6b7280;--blue-bg:#e6f1fb;--blue-text:#0c447c;--win-bg:#e8f4ff;--win:#185fa5;--lose-bg:#fdecec;--lose:#a32d2d;--draw-bg:#f4f0e7;--draw:#5f5e5a;--current-bg:#fff7d6;--current-text:#7a5600;--next-bg:#eaf3ff;--next-text:#0c447c;--btn:#0c447c;--btn-text:#fff}
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic","Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
+body{padding:12px}.app{max-width:1600px;margin:0 auto}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.topbar{padding:12px;margin-bottom:10px}.title{font-size:22px;font-weight:800;margin-bottom:10px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.controls label{font-size:14px;color:var(--sub)}
+.controls input[type=number],.controls input[type=text],.controls button{height:40px;border:1px solid var(--line-dark);border-radius:10px;font:inherit;background:#fff;color:var(--text)}
+.controls input[type=number]{width:70px;padding:0 10px;text-align:center}.controls button{padding:0 14px;cursor:pointer}.controls .primary{background:var(--btn);color:var(--btn-text);border-color:var(--btn)}
+.info{font-size:13px;color:var(--sub);margin-top:10px;line-height:1.6}
+.status-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.status{padding:10px 12px;border-radius:12px;border:1px solid var(--line-dark);font-weight:700}
+.status.current{background:var(--current-bg);color:var(--current-text)}.status.next{background:var(--next-bg);color:var(--next-text)}
+.names-card{padding:12px;margin-bottom:10px}.names-grid{display:flex;flex-wrap:wrap;gap:8px}.name-item{display:flex;align-items:center;gap:6px}
+.name-badge{min-width:38px;height:38px;padding:0 8px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--blue-bg);color:var(--blue-text);font-weight:700;border:1px solid #bfd4e8}
+.name-item input{width:104px;height:38px;border:1px solid var(--line-dark);border-radius:10px;padding:0 10px;font:inherit}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:10px}.table-card{padding:10px;min-width:0}.table-scroll{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:#fff}
+table{border-collapse:collapse;width:max-content;min-width:100%;table-layout:fixed}th,td{border:1px solid var(--line-dark);text-align:center;vertical-align:middle}
+.head-corner,.head-name,.row-name,.stat-head,.diag,.game,.stat-cell{width:110px;min-width:110px;height:72px}.head-corner{width:82px;min-width:82px;background:#f4f6f8;position:relative}
+.corner-top{position:absolute;right:8px;top:8px;color:var(--sub);font-size:12px}.corner-bottom{position:absolute;left:8px;bottom:8px;color:var(--sub);font-size:12px}.corner-line{position:absolute;inset:0;background:linear-gradient(to bottom right,transparent 49.2%,var(--line-dark) 49.2%,var(--line-dark) 50.8%,transparent 50.8%)}
+.head-name,.row-name{background:var(--blue-bg);color:var(--blue-text);font-weight:800;font-size:13px;line-height:1.35;padding:4px;white-space:pre-line}.stat-head{background:#f4f6f8;color:var(--sub);font-weight:700;font-size:12px}
+.diag{background:#f4f6f8;position:relative}.diag:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom right,transparent 49.2%,var(--line-dark) 49.2%,var(--line-dark) 50.8%,transparent 50.8%)}
+.game{background:#fff}.game.auto{background:#f4f6f8}.game-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:70px}.score-line{display:flex;align-items:center;gap:4px}
+.score-input{width:34px;height:32px;border:1px solid var(--line-dark);border-radius:7px;text-align:center;font:inherit;font-weight:700;background:#fff;color:var(--text)}.score-input[readonly]{background:#f4f6f8;color:var(--sub)}.score-sep{font-size:13px;color:var(--sub)}
+.badge{min-width:44px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800}.badge.empty{background:transparent;color:transparent}.badge.win{background:var(--win-bg);color:var(--win)}.badge.lose{background:var(--lose-bg);color:var(--lose)}.badge.draw{background:var(--draw-bg);color:var(--draw)}
+.stat-cell{background:#fff;font-size:13px}.stat-main{font-weight:800}.stat-sub{font-size:12px;color:var(--sub);margin-top:3px}.rank{font-size:14px;font-weight:800}.rank.r1{color:#ba7517}.rank.r2{color:#888780}.rank.r3{color:#3c3489}.rank.rn{color:#555}
+.side-card{padding:10px;display:flex;flex-direction:column;min-width:0}.side-title{font-size:16px;font-weight:800;margin-bottom:8px}.schedule-scroll{overflow:auto;max-height:calc(100vh - 260px);padding-right:2px}
+.round-title{font-size:13px;font-weight:800;color:var(--blue-text);margin:10px 0 6px}.match-row{display:grid;grid-template-columns:26px 36px 74px 1fr;gap:6px;align-items:center;border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px 8px;margin-bottom:6px}
+.match-row.current{background:var(--current-bg);border-color:#e2c66d}.match-row.next{background:var(--next-bg);border-color:#9bbbe8}.match-check{width:18px;height:18px}.match-order,.match-code{font-size:12px;color:var(--sub);text-align:center}.match-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bottom-tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.bottom-tools button{height:38px;border-radius:10px;border:1px solid var(--line-dark);background:#fff;padding:0 14px;font:inherit}
+.hint{font-size:12px;color:var(--sub);margin-top:8px}input[type=file]{display:none}
+@media (max-width:1100px){.main{grid-template-columns:1fr}.side-card{order:-1}.schedule-scroll{max-height:none}}
+@media (max-width:640px){body{padding:8px}.title{font-size:18px}.status-wrap{grid-template-columns:1fr}.controls{gap:6px}.name-item input{width:90px}.match-row{grid-template-columns:24px 32px 66px 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="card topbar">
+<div class="title">탁구 대진표 모바일 완성판</div>
+<div class="controls">
+<label for="pcount">참가자 수</label>
+<input type="number" id="pcount" min="2" max="20" value="8" inputmode="numeric">
+<button class="primary" id="buildBtn">대진표 생성</button>
+<button id="resetBtn">점수 초기화</button>
+<button id="saveBtn">저장</button>
+<button id="loadBtn">불러오기</button>
+<button id="downloadHtmlBtn">현재 HTML 다운로드</button>
+<input type="file" id="loadFile" accept=".json,application/json">
+</div>
+<div class="info">상삼각 칸만 입력하면 하삼각은 자동 반영됩니다. 순위 기준은 경기 승수 → 세트 승수 → 세트 득실차 → 패 수이며, 모두 같으면 공동순위입니다. 4명/8명/16명처럼 2의 거듭제곱 인원은 선호 패턴(1-2, 3-4, 1-3, 2-4 …)으로 순서를 편성합니다.</div>
+</div>
+
+<div class="status-wrap">
+<div class="status current" id="currentMatch">현재 경기: -</div>
+<div class="status next" id="nextMatch">다음 경기: -</div>
+</div>
+
+<div class="card names-card"><div class="names-grid" id="namesGrid"></div></div>
+
+<div class="main">
+<div class="card table-card">
+<div class="table-scroll"><div id="tableWrap"></div></div>
+<div class="bottom-tools">
+<button id="exportJsonBtn">JSON 내보내기</button>
+<button id="importJsonBtn">JSON 불러오기</button>
+<button id="clearStorageBtn">자동저장 초기화</button>
+</div>
+<div class="hint">자동 저장이 켜져 있습니다. 같은 브라우저에서 다시 열면 마지막 상태를 불러옵니다.</div>
+</div>
+
+<div class="card side-card">
+<div class="side-title">시합 순서</div>
+<div class="schedule-scroll" id="scheduleWrap"></div>
+</div>
+</div>
+</div>
+
+<script>
+const STORAGE_KEY="pingpong_tournament_mobile_v1";
+let n=8,names=[],scores=[],matchMeta=[];
+
+function isPowerOfTwo(x){return x>0&&((x&(x-1))===0);}
+function sanitize(v){if(v==null)return "";return String(v).replace(/[^0-9]/g,"").slice(0,2);}
+function escapeHtml(str){return String(str??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");}
+function initState(count){n=count;names=Array.from({length:n},(_,i)=>`선수${i+1}`);scores=Array.from({length:n},()=>Array.from({length:n},()=>({me:"",opp:""})));matchMeta=[];}
+function exportState(){return {n:n,names:names,scores:scores};}
+function saveToStorage(){localStorage.setItem(STORAGE_KEY,JSON.stringify(exportState()));}
+function loadFromStorage(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return false;restoreState(JSON.parse(raw));return true;}catch(e){return false;}}
+function restoreState(data){
+  const count=parseInt(data.n,10); if(isNaN(count)||count<2||count>20) return;
+  initState(count); document.getElementById("pcount").value=count;
+  if(Array.isArray(data.names)){for(let i=0;i<Math.min(count,data.names.length);i++) names[i]=data.names[i]||`선수${i+1}`;}
+  if(Array.isArray(data.scores)){for(let i=0;i<Math.min(count,data.scores.length);i++){for(let j=0;j<Math.min(count,data.scores[i].length);j++){const it=data.scores[i][j]; if(it&&typeof it==="object"){scores[i][j].me=sanitize(it.me||"");scores[i][j].opp=sanitize(it.opp||"");}}}}
+  for(let i=0;i<count;i++){for(let j=i+1;j<count;j++){scores[j][i].me=scores[i][j].opp;scores[j][i].opp=scores[i][j].me;}}
+  renderAll();
+}
+function buildNew(){const count=parseInt(document.getElementById("pcount").value,10);if(isNaN(count)||count<2||count>20){alert("참가자 수는 2명~20명 사이여야 합니다.");return;} initState(count); renderAll(); saveToStorage();}
+function onNameChange(idx,val){names[idx]=val.trim()||`선수${idx+1}`; syncNames(); renderSchedule(); updateCurrentNext(); saveToStorage();}
+function syncNames(){document.querySelectorAll(".name-sync").forEach(el=>{const idx=parseInt(el.dataset.idx,10); if(!isNaN(idx)) el.textContent=`${idx+1}
+${names[idx]}`;});}
+function renderNames(){
+  const wrap=document.getElementById("namesGrid"); wrap.innerHTML="";
+  for(let i=0;i<n;i++){
+    const item=document.createElement("div"); item.className="name-item";
+    item.innerHTML=`<div class="name-badge">${i+1}번</div><input type="text" value="${escapeHtml(names[i])}">`;
+    item.querySelector("input").addEventListener("input",e=>onNameChange(i,e.target.value));
+    wrap.appendChild(item);
+  }
+}
+function generatePreferredRoundsPowerOfTwo(count){
+  const rounds=[]; for(let r=1;r<count;r++){const pairs=[],used=new Set(); for(let a=0;a<count;a++){if(used.has(a))continue; const b=a^r; if(b<count&&!used.has(b)){const x=Math.min(a,b), y=Math.max(a,b); pairs.push([x,y]); used.add(a); used.add(b);}} pairs.sort((p,q)=>p[0]-q[0]||p[1]-q[1]); rounds.push(pairs);} return rounds;
+}
+function generateBalancedRounds(count){
+  const players=Array.from({length:count},(_,i)=>i); const ghost=null; if(players.length%2===1) players.push(ghost); const total=players.length,rounds=[];
+  for(let r=0;r<total-1;r++){const pairs=[]; for(let i=0;i<total/2;i++){const a=players[i],b=players[total-1-i]; if(a!==ghost&&b!==ghost) pairs.push([Math.min(a,b),Math.max(a,b)]);} pairs.sort((p,q)=>p[0]-q[0]||p[1]-q[1]); rounds.push(pairs); const rotated=[players[0],players[total-1],...players.slice(1,total-1)]; for(let i=0;i<total;i++) players[i]=rotated[i];}
+  return rounds;
+}
+function getScheduleRounds(){return (n%2===0&&isPowerOfTwo(n))?generatePreferredRoundsPowerOfTwo(n):generateBalancedRounds(n);}
+function renderTable(){
+  let html='<table><thead><tr><th class="head-corner"><div class="corner-line"></div><div class="corner-top">상대</div><div class="corner-bottom">본인</div></th>';
+  for(let j=0;j<n;j++) html+=`<th class="head-name"><span class="name-sync" data-idx="${j}">${j+1}
+${escapeHtml(names[j])}</span></th>`;
+  html+='<th class="stat-head">승패 / 세트</th><th class="stat-head">순위</th></tr></thead><tbody>';
+  for(let i=0;i<n;i++){
+    html+=`<tr><td class="row-name"><span class="name-sync" data-idx="${i}">${i+1}
+${escapeHtml(names[i])}</span></td>`;
+    for(let j=0;j<n;j++){
+      if(i===j){html+='<td class="diag"></td>';continue;}
+      const editable=i<j, me=scores[i][j].me||"", opp=scores[i][j].opp||"", cls=editable?"game":"game auto";
+      if(editable){
+        html+=`<td class="${cls}"><div class="game-wrap"><div class="score-line"><input class="score-input" inputmode="numeric" id="inp-${i}-${j}-me" value="${escapeHtml(me)}"><span class="score-sep">:</span><input class="score-input" inputmode="numeric" id="inp-${i}-${j}-opp" value="${escapeHtml(opp)}"></div><span class="badge empty" id="badge-${i}-${j}">-</span></div></td>`;
+      }else{
+        html+=`<td class="${cls}"><div class="game-wrap"><div class="score-line"><input class="score-input" readonly value="${escapeHtml(me)}"><span class="score-sep">:</span><input class="score-input" readonly value="${escapeHtml(opp)}"></div><span class="badge empty" id="badge-${i}-${j}">-</span></div></td>`;
+      }
+    }
+    html+=`<td class="stat-cell"><div class="stat-main" id="wl-${i}">-</div><div class="stat-sub" id="set-${i}"></div></td><td class="stat-cell"><div class="rank rn" id="rank-${i}">-</div></td></tr>`;
+  }
+  html+='</tbody></table>';
+  document.getElementById("tableWrap").innerHTML=html;
+  for(let i=0;i<n;i++){for(let j=i+1;j<n;j++){
+    const me=document.getElementById(`inp-${i}-${j}-me`), opp=document.getElementById(`inp-${i}-${j}-opp`);
+    me.addEventListener("input",e=>{onScoreInput(i,j,"me",e.target.value); e.target.value=scores[i][j].me;});
+    opp.addEventListener("input",e=>{onScoreInput(i,j,"opp",e.target.value); e.target.value=scores[i][j].opp;});
+  }}
+}
+function renderSchedule(){
+  const wrap=document.getElementById("scheduleWrap"); wrap.innerHTML=""; const rounds=getScheduleRounds(); matchMeta=[]; let order=1;
+  rounds.forEach((rm,ri)=>{const rt=document.createElement("div"); rt.className="round-title"; rt.textContent=`[라운드 ${ri+1}]`; wrap.appendChild(rt);
+    rm.forEach(([i,j])=>{const row=document.createElement("div"); row.className="match-row"; row.id=`match-row-${matchMeta.length}`;
+      row.innerHTML=`<input class="match-check" type="checkbox" disabled id="match-check-${matchMeta.length}"><div class="match-order">${order}</div><div class="match-code">${i+1} vs ${j+1}</div><div class="match-name">${escapeHtml(names[i])} vs ${escapeHtml(names[j])}</div>`;
+      wrap.appendChild(row); matchMeta.push([i,j]); order++;
+    });
+  });
+}
+function onScoreInput(i,j,role,val){scores[i][j][role]=sanitize(val); scores[j][i].me=scores[i][j].opp; scores[j][i].opp=scores[i][j].me; renderAll(false); saveToStorage();}
+function calcStats(){
+  const wins=Array(n).fill(0),losses=Array(n).fill(0),played=Array(n).fill(0),setWins=Array(n).fill(0),setLosses=Array(n).fill(0);
+  for(let i=0;i<n;i++){for(let j=0;j<n;j++){if(i===j) continue; const me=parseInt(scores[i][j].me,10), opp=parseInt(scores[i][j].opp,10); if(scores[i][j].me===""||scores[i][j].opp===""||isNaN(me)||isNaN(opp)) continue; played[i]++; setWins[i]+=me; setLosses[i]+=opp; if(me>opp) wins[i]++; else if(me<opp) losses[i]++;}}
+  return {wins,losses,played,setWins,setLosses};
+}
+function getDisplayRanks(stats){
+  const arr=[]; for(let i=0;i<n;i++) arr.push({i,w:stats.wins[i],l:stats.losses[i],p:stats.played[i],sw:stats.setWins[i],sl:stats.setLosses[i],sd:stats.setWins[i]-stats.setLosses[i]});
+  arr.sort((a,b)=>(b.w-a.w)||(b.sw-a.sw)||(b.sd-a.sd)||(a.l-b.l)||(a.i-b.i));
+  const ranks=Array(n).fill(0); let dense=0, prevKey=null;
+  arr.forEach(it=>{const key=`${it.w}|${it.sw}|${it.sd}|${it.l}`; if(key!==prevKey){dense++; prevKey=key;} ranks[it.i]=dense;});
+  return ranks;
+}
+function getResult(i,j){const me=parseInt(scores[i][j].me,10), opp=parseInt(scores[i][j].opp,10); if(scores[i][j].me===""||scores[i][j].opp===""||isNaN(me)||isNaN(opp)) return ""; if(me>opp) return "win"; if(me<opp) return "lose"; return "draw";}
+function updateTableStats(){
+  const stats=calcStats(), ranks=getDisplayRanks(stats);
+  for(let i=0;i<n;i++){
+    for(let j=0;j<n;j++){if(i===j) continue; const badge=document.getElementById(`badge-${i}-${j}`); if(!badge) continue; const r=getResult(i,j); badge.className="badge"; if(r==="win"){badge.classList.add("win"); badge.textContent="승";} else if(r==="lose"){badge.classList.add("lose"); badge.textContent="패";} else if(r==="draw"){badge.classList.add("draw"); badge.textContent="무";} else {badge.classList.add("empty"); badge.textContent="-";}}
+    document.getElementById(`wl-${i}`).textContent=stats.played[i]>0?`${stats.wins[i]}승 ${stats.losses[i]}패`:"-";
+    document.getElementById(`set-${i}`).textContent=stats.played[i]>0?`세트 ${stats.setWins[i]}승 ${stats.setLosses[i]}패`:"";
+    const rankEl=document.getElementById(`rank-${i}`); if(stats.played[i]===0){rankEl.textContent="-"; rankEl.className="rank rn";} else {const sameCount=ranks.filter(v=>v===ranks[i]).length; rankEl.textContent=sameCount>=2?`공동 ${ranks[i]}위`:`${ranks[i]}위`; rankEl.className="rank "+(ranks[i]===1?"r1":ranks[i]===2?"r2":ranks[i]===3?"r3":"rn");}
+  }
+}
+function updateScheduleChecks(){
+  let cur=null,next=null;
+  matchMeta.forEach(([i,j],idx)=>{const done=scores[i][j].me!==""&&scores[i][j].opp!==""; const chk=document.getElementById(`match-check-${idx}`), row=document.getElementById(`match-row-${idx}`); if(chk) chk.checked=done; if(row){row.classList.remove("current","next");} if(!done&&cur===null) cur=idx; else if(!done&&next===null) next=idx;});
+  if(cur!==null){document.getElementById(`match-row-${cur}`)?.classList.add("current"); const [i,j]=matchMeta[cur]; document.getElementById("currentMatch").textContent=`현재 경기: ${i+1}번 ${names[i]} vs ${j+1}번 ${names[j]}`;} else document.getElementById("currentMatch").textContent="현재 경기: 모든 경기가 완료되었습니다";
+  if(next!==null){document.getElementById(`match-row-${next}`)?.classList.add("next"); const [i,j]=matchMeta[next]; document.getElementById("nextMatch").textContent=`다음 경기: ${i+1}번 ${names[i]} vs ${j+1}번 ${names[j]}`;} else document.getElementById("nextMatch").textContent="다음 경기: -";
+}
+function updateCurrentNext(){updateScheduleChecks();}
+function renderAll(resetNames=true){if(resetNames) renderNames(); renderTable(); renderSchedule(); updateTableStats(); updateScheduleChecks();}
+function resetScores(){for(let i=0;i<n;i++){for(let j=0;j<n;j++){scores[i][j].me=""; scores[i][j].opp="";}} renderAll(false); saveToStorage();}
+function downloadJson(){const blob=new Blob([JSON.stringify(exportState(),null,2)],{type:"application/json;charset=utf-8"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="탁구대진표.json"; a.click(); URL.revokeObjectURL(a.href);}
+function importJsonFile(file){const reader=new FileReader(); reader.onload=e=>{try{restoreState(JSON.parse(e.target.result)); saveToStorage();}catch(err){alert("JSON 파일을 읽지 못했습니다.");}}; reader.readAsText(file,"utf-8");}
+function clearStorage(){localStorage.removeItem(STORAGE_KEY); alert("자동 저장 데이터를 지웠습니다.");}
+function downloadCurrentHtml(){const blob=new Blob([document.documentElement.outerHTML],{type:"text/html;charset=utf-8"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="탁구대진표_모바일완성판.html"; a.click(); URL.revokeObjectURL(a.href);}
+document.getElementById("buildBtn").addEventListener("click",buildNew);
+document.getElementById("resetBtn").addEventListener("click",resetScores);
+document.getElementById("saveBtn").addEventListener("click",downloadJson);
+document.getElementById("loadBtn").addEventListener("click",()=>document.getElementById("loadFile").click());
+document.getElementById("loadFile").addEventListener("change",e=>{const file=e.target.files&&e.target.files[0]; if(file) importJsonFile(file); e.target.value="";});
+document.getElementById("exportJsonBtn").addEventListener("click",downloadJson);
+document.getElementById("importJsonBtn").addEventListener("click",()=>document.getElementById("loadFile").click());
+document.getElementById("clearStorageBtn").addEventListener("click",clearStorage);
+document.getElementById("downloadHtmlBtn").addEventListener("click",downloadCurrentHtml);
+if(!loadFromStorage()){initState(parseInt(document.getElementById("pcount").value,10)||8); renderAll();}
+</script>
+</body>
+</html>
