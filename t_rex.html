@@ -8,7 +8,7 @@
     html, body { height: 100%; margin: 0; }
     body { display: grid; place-items: center; background: #fff; font-family: system-ui, sans-serif; }
     .wrap { width: min(900px, 95vw); }
-    canvas { width: 100%; height: auto; border: 1px solid #ddd; border-radius: 10px; }
+    canvas { width: 100%; height: auto; border: 1px solid #ddd; border-radius: 10px; touch-action: none; -webkit-tap-highlight-color: transparent; }
     .hint { margin-top: 10px; color: #555; font-size: 14px; display:flex; justify-content: space-between; gap:12px; flex-wrap:wrap; }
     kbd { border: 1px solid #ccc; border-bottom-width: 2px; padding: 2px 6px; border-radius: 6px; background: #f8f8f8; }
   </style>
@@ -18,7 +18,7 @@
     <canvas id="c" width="900" height="260"></canvas>
     <div class="hint">
       <div>
-        조작: <kbd>Space</kbd>/<kbd>↑</kbd> 점프, <kbd>↓</kbd> 숙이기, <kbd>R</kbd> 재시작
+        조작: <kbd>Space</kbd>/<kbd>↑</kbd>/<kbd>Touch</kbd> 점프, <kbd>↓</kbd> 숙이기, <kbd>R</kbd> 재시작
       </div>
       <div id="status"></div>
     </div>
@@ -123,6 +123,25 @@
   window.addEventListener("keyup", (e) => {
     if (e.code === "ArrowUp" || e.code === "Space") keys.up = false;
     if (e.code === "ArrowDown") keys.down = false;
+  });
+
+  // touch: tap to jump, tap after game over to restart
+  canvas.addEventListener("touchstart", (e) => {
+    if (e.cancelable) e.preventDefault();
+    if (game && game.over) {
+      reset();
+      return;
+    }
+    keys.up = true;
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", (e) => {
+    if (e.cancelable) e.preventDefault();
+    keys.up = false;
+  }, { passive: false });
+
+  canvas.addEventListener("touchcancel", () => {
+    keys.up = false;
   });
 
   // ----- Render helpers
