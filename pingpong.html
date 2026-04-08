@@ -3,561 +3,556 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0C447C">
-<title>탁구 대진표 HTML 완성판</title>
+<meta name="format-detection" content="telephone=no">
+<title>탁구 대진표 - iPad 호환 최종판</title>
 <style>
 :root{
-  --bg:#f7f8fb;--panel:#fff;--line:#cfd6dd;--line-dark:#a8b0bb;--text:#111827;--sub:#6b7280;
-  --blue-bg:#e6f1fb;--blue-text:#0c447c;--win-bg:#e8f4ff;--win:#185fa5;--lose-bg:#fdecec;--lose:#a32d2d;
-  --draw-bg:#f4f0e7;--draw:#5f5e5a;--current-bg:#fff7d6;--current-text:#7a5600;--next-bg:#eaf3ff;--next-text:#0c447c;
-  --btn:#0c447c;--btn-text:#fff;--focus-player-bg:#fff2b3;--focus-player-text:#7a5600;--focus-opp-bg:#eaf3ff;--focus-opp-text:#0c447c;
+  --bg-primary:#ffffff;
+  --bg-secondary:#f4f6f8;
+  --bg-info:#eef6ff;
+  --text-primary:#111827;
+  --text-secondary:#6b7280;
+  --text-danger:#b91c1c;
+  --border-main:#a8b0bb;
+  --border-sub:#cfd6dd;
+  --border-info:#60a5fa;
+  --blue-fill:#e6f1fb;
+  --blue-text:#0c447c;
+  --win-bg:#e6f1fb;
+  --win-text:#185fa5;
+  --lose-bg:#fcebeb;
+  --lose-text:#a32d2d;
+  --draw-bg:#f1efe8;
+  --draw-text:#5f5e5a;
 }
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic","Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%}
-body{padding:12px}
-.app{max-width:1600px;margin:0 auto}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-.topbar{padding:12px;margin-bottom:10px}
-.title{font-size:22px;font-weight:800;margin-bottom:10px}
-.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.controls label{font-size:14px;color:var(--sub)}
-.controls input[type=number],.controls input[type=text],.controls button{
-  height:40px;border:1px solid var(--line-dark);border-radius:10px;font:inherit;background:#fff;color:var(--text)
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{
+  width:100%;
+  min-height:100%;
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
 }
-.controls input[type=number]{width:70px;padding:0 10px;text-align:center}
-.controls button{padding:0 14px;cursor:pointer}
-.controls .primary{background:var(--btn);color:var(--btn-text);border-color:var(--btn)}
-.info{font-size:13px;color:var(--sub);margin-top:10px;line-height:1.65}
-.status-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.status{padding:10px 12px;border-radius:12px;border:1px solid var(--line-dark);font-weight:700}
-.status.current{background:var(--current-bg);color:var(--current-text)}
-.status.next{background:var(--next-bg);color:var(--next-text)}
-.names-card{padding:12px;margin-bottom:10px}
-.names-grid{display:flex;flex-wrap:wrap;gap:8px}
-.name-item{display:flex;align-items:center;gap:6px}
-.name-badge{min-width:38px;height:38px;padding:0 8px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--blue-bg);color:var(--blue-text);font-weight:700;border:1px solid #bfd4e8}
-.name-item input{width:104px;height:38px;border:1px solid var(--line-dark);border-radius:10px;padding:0 10px;font:inherit}
-.main{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:10px}
-.table-card{padding:10px;min-width:0}
-.table-scroll{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:#fff}
-table{border-collapse:collapse;width:max-content;min-width:100%;table-layout:fixed}
-th,td{border:1px solid var(--line-dark);text-align:center;vertical-align:middle}
-.head-corner,.head-name,.row-name,.stat-head,.diag,.game,.stat-cell{width:110px;min-width:110px;height:72px}
-.head-corner{width:82px;min-width:82px;background:#f4f6f8;position:relative}
-.corner-top{position:absolute;right:8px;top:8px;color:var(--sub);font-size:12px}
-.corner-bottom{position:absolute;left:8px;bottom:8px;color:var(--sub);font-size:12px}
-.corner-line{position:absolute;inset:0;background:linear-gradient(to top right,transparent 49.2%,var(--line-dark) 49.2%,var(--line-dark) 50.8%,transparent 50.8%)}
-.head-name,.row-name{background:var(--blue-bg);color:var(--blue-text);font-weight:800;font-size:13px;line-height:1.35;padding:4px;white-space:pre-line;transition:.12s}
-.head-name.focus-player,.row-name.focus-player{background:var(--focus-player-bg);color:var(--focus-player-text)}
-.head-name.focus-opp,.row-name.focus-opp{background:var(--focus-opp-bg);color:var(--focus-opp-text)}
-.stat-head{background:#f4f6f8;color:var(--sub);font-weight:700;font-size:12px}
-.diag{background:#f4f6f8;position:relative}
-.diag:after{content:"";position:absolute;inset:0;background:linear-gradient(to top right,transparent 49.2%,var(--line-dark) 49.2%,var(--line-dark) 50.8%,transparent 50.8%)}
-.game{background:#fff}
-.game.auto{background:#f4f6f8}
-.game-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:70px}
-.score-line{display:flex;align-items:center;gap:4px}
-.score-input{width:34px;height:32px;border:1px solid var(--line-dark);border-radius:7px;text-align:center;font:inherit;font-weight:700;background:#fff;color:var(--text)}
-.score-input:focus{outline:none;border-color:#6699d0;box-shadow:0 0 0 2px rgba(12,68,124,.08)}
-.score-input[readonly]{background:#f4f6f8;color:var(--sub)}
-.score-sep{font-size:13px;color:var(--sub)}
-.badge{min-width:44px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800}
-.badge.empty{background:transparent;color:transparent}
-.badge.win{background:var(--win-bg);color:var(--win)}
-.badge.lose{background:var(--lose-bg);color:var(--lose)}
-.badge.draw{background:var(--draw-bg);color:var(--draw)}
-.stat-cell{background:#fff;font-size:13px}
-.stat-main{font-weight:800}
-.stat-sub{font-size:12px;color:var(--sub);margin-top:3px}
-.rank{font-size:14px;font-weight:800}
-.rank.r1{color:#ba7517}.rank.r2{color:#888780}.rank.r3{color:#3c3489}.rank.rn{color:#555}
-.side-card{padding:10px;display:flex;flex-direction:column;min-width:0}
-.side-title{font-size:16px;font-weight:800;margin-bottom:8px}
-.schedule-scroll{overflow:auto;max-height:calc(100vh - 260px);padding-right:2px}
-.round-title{font-size:13px;font-weight:800;color:var(--blue-text);margin:10px 0 6px}
-.match-row{display:grid;grid-template-columns:26px 36px 74px 1fr;gap:6px;align-items:center;border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px 8px;margin-bottom:6px}
-.match-row.current{background:var(--current-bg);border-color:#e2c66d}
-.match-row.next{background:var(--next-bg);border-color:#9bbbe8}
-.match-check{width:18px;height:18px}
-.match-order,.match-code{font-size:12px;color:var(--sub);text-align:center}
-.match-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bottom-tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.bottom-tools button{height:38px;border-radius:10px;border:1px solid var(--line-dark);background:#fff;padding:0 14px;font:inherit}
-.hint{font-size:12px;color:var(--sub);margin-top:8px}
-input[type=file]{display:none}
-@media (max-width:1100px){.main{grid-template-columns:1fr}.side-card{order:-1}.schedule-scroll{max-height:none}}
-@media (max-width:640px){body{padding:8px}.title{font-size:18px}.status-wrap{grid-template-columns:1fr}.controls{gap:6px}.name-item input{width:90px}.match-row{grid-template-columns:24px 32px 66px 1fr}}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",
+              "Malgun Gothic","Segoe UI",Arial,sans-serif;
+  line-height:1.45;
+}
+button,input{font:inherit;}
+input,textarea,select,button{-webkit-appearance:none;appearance:none;}
+.wrap{padding:14px;width:100%;}
+.title{font-size:18px;font-weight:700;margin-bottom:10px;}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.controls label{font-size:14px;color:var(--text-secondary);}
+.controls input[type=number]{
+  width:68px;min-height:38px;font-size:14px;padding:6px 8px;border:1px solid var(--border-main);
+  border-radius:10px;background:var(--bg-primary);color:var(--text-primary);text-align:center;
+}
+.controls button{
+  min-height:38px;font-size:14px;padding:8px 14px;border:1px solid var(--border-main);
+  border-radius:10px;background:var(--bg-primary);color:var(--text-primary);
+}
+.controls button.primary{background:var(--blue-fill);color:var(--blue-text);border-color:#b7cee4;font-weight:600;}
+.name-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.name-row input{
+  width:96px;min-height:36px;font-size:13px;padding:6px 8px;border:1px solid var(--border-main);
+  border-radius:8px;background:var(--bg-primary);color:var(--text-primary);
+}
+.legend{font-size:12px;color:var(--text-secondary);margin-bottom:8px;line-height:1.7;}
+.legend b{font-weight:700;color:var(--text-primary);}
+.table-shell{
+  width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+  border:1px solid var(--border-main);border-radius:12px;background:var(--bg-primary);padding:0;
+}
+#tbl{display:block;width:max-content;min-width:100%;}
+table{border-collapse:collapse;table-layout:fixed;background:var(--bg-primary);width:auto;}
+th,td{border:1px solid var(--border-main);text-align:center;vertical-align:middle;}
+.th-corner{width:78px;min-width:78px;background:var(--bg-secondary);position:relative;height:60px;}
+.th-corner-line{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;}
+.th-corner-line:after{
+  content:'';position:absolute;top:0;left:0;width:160px;height:1px;background:var(--border-main);
+  transform-origin:top left;transform:rotate(36deg);
+}
+.th-corner-inner{position:absolute;left:0;top:0;right:0;bottom:0;padding:5px 7px;font-size:11px;color:var(--text-secondary);}
+.th-corner-inner .tr{display:block;text-align:right;}
+.th-corner-inner .bl{display:block;text-align:left;position:absolute;left:7px;bottom:5px;}
+.th-name{
+  width:96px;min-width:96px;background:var(--blue-fill);color:var(--blue-text);font-weight:700;
+  font-size:12px;padding:4px;height:60px;word-break:keep-all;
+}
+.th-stat{
+  width:96px;min-width:96px;background:var(--bg-secondary);color:var(--text-secondary);
+  font-weight:700;font-size:11px;padding:4px;
+}
+.td-rowname{
+  width:78px;min-width:78px;background:var(--blue-fill);color:var(--blue-text);font-weight:700;
+  font-size:12px;padding:4px 6px;height:60px;word-break:keep-all;
+}
+.td-diag{width:96px;min-width:96px;height:60px;background:var(--bg-secondary);position:relative;}
+.td-diag:after{
+  content:'';position:absolute;left:0;top:0;right:0;bottom:0;
+  background:linear-gradient(to bottom right, transparent 49.2%, var(--border-main) 49.2%, var(--border-main) 50.8%, transparent 50.8%);
+}
+.td-game{width:96px;min-width:96px;height:60px;padding:4px 3px;background:var(--bg-primary);}
+.td-game.auto-filled{background:var(--bg-secondary);}
+.game-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:50px;}
+.score-display{display:flex;align-items:center;justify-content:center;gap:3px;}
+.score-display input{
+  width:30px;height:30px;font-size:13px;font-weight:700;border:1px solid var(--border-main);
+  border-radius:6px;background:var(--bg-primary);color:var(--text-primary);text-align:center;padding:0;outline:none;
+  -moz-appearance:textfield;
+}
+.score-display input::-webkit-outer-spin-button,.score-display input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.score-display input:focus{border-color:var(--border-info);background:var(--bg-info);}
+.score-display input[readonly]{background:var(--bg-secondary);color:var(--text-secondary);border-color:var(--border-sub);}
+.score-sep{font-size:12px;color:var(--text-secondary);}
+.result-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;min-width:42px;display:inline-block;}
+.badge-win{background:var(--win-bg);color:var(--win-text);}
+.badge-lose{background:var(--lose-bg);color:var(--lose-text);}
+.badge-draw{background:var(--draw-bg);color:var(--draw-text);}
+.badge-empty{background:transparent;color:transparent;}
+.td-stat{width:96px;min-width:96px;font-size:12px;padding:4px;background:var(--bg-primary);}
+.wl-text{font-weight:700;color:var(--text-primary);}
+.rate-text{font-size:11px;color:var(--text-secondary);}
+.rank-gold{font-size:15px;font-weight:800;color:#ba7517;}
+.rank-silver{font-size:14px;font-weight:800;color:#888780;}
+.rank-bronze{font-size:13px;font-weight:800;color:#3c3489;}
+.rank-other{font-size:13px;color:var(--text-secondary);}
+.rank-none{font-size:12px;color:var(--border-main);}
+.hint{font-size:12px;color:var(--text-danger);margin-top:8px;}
+.footer-note{font-size:11px;color:var(--text-secondary);margin-top:8px;}
+@media (max-width: 768px){
+  .wrap{padding:12px;}
+  .name-row input{width:100px;}
+}
+@supports (-webkit-touch-callout:none){
+  body{padding-bottom:env(safe-area-inset-bottom);}
+}
+
+.splash{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9999;}
+.splash img{max-width:100%;max-height:100%;object-fit:contain;}
+.hidden{display:none !important;}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="card topbar">
-    <div class="title">탁구 대진표 HTML 완성판</div>
-    <div class="controls">
-      <label for="pcount">참가자 수</label>
-      <input type="number" id="pcount" min="2" max="20" value="8" inputmode="numeric">
-      <button class="primary" id="buildBtn">대진표 생성</button>
-      <button id="resetBtn">점수 초기화</button>
-      <button id="saveBtn">저장</button>
-      <button id="loadBtn">불러오기</button>
-      <button id="downloadHtmlBtn">현재 HTML 다운로드</button>
-      <input type="file" id="loadFile" accept=".json,application/json">
-    </div>
-    <div class="info">
-      상삼각 칸만 입력하면 하삼각은 자동 반영됩니다. 순위 기준은 경기 승수 → 세트 승수 → 세트 득실차 → 패 수이며, 모두 같으면 공동순위입니다.
-      점수 입력칸을 선택하면 해당 점수를 입력할 선수와 상대 선수가 하이라이트되어 입력 오류를 줄일 수 있습니다.
-    </div>
+<div id="splash" class="splash">
+  <img src="https://raw.githubusercontent.com/OIhroDIL/imgBackUp/refs/heads/main/pingpong.gif" alt="시작 화면 GIF">
+</div>
+<div class="wrap hidden" id="mainWrap">
+  <div class="title">탁구 대진표</div>
+
+  <div class="controls">
+    <label for="pcount">참가자 수:</label>
+    <input type="number" id="pcount" min="2" max="20" value="4" inputmode="numeric">
+    <button class="primary" type="button" id="buildBtn">대진표 생성</button>
+    <button type="button" id="resetBtn">점수 초기화</button>
   </div>
 
-  <div class="status-wrap">
-    <div class="status current" id="currentMatch">현재 경기: -</div>
-    <div class="status next" id="nextMatch">다음 경기: -</div>
+  <div class="name-row" id="nameRow"></div>
+
+  <div class="legend">
+    <b>상삼각(우측)</b> 셀에만 점수 입력 → 하삼각(좌측) 상대방 칸에 자동 반영<br>
+    <b>순위 기준</b>: 경기 승수 → 세트 승수 → 세트 득실차<br>
+    <b>Enter / Tab / 방향키</b>로 다음 칸 이동 &nbsp;|&nbsp; 회색 칸은 자동입력(수정 불가)
   </div>
 
-  <div class="card names-card">
-    <div class="names-grid" id="namesGrid"></div>
+  <div class="table-shell">
+    <div id="tbl"></div>
   </div>
 
-  <div class="main">
-    <div class="card table-card">
-      <div class="table-scroll"><div id="tableWrap"></div></div>
-      <div class="bottom-tools">
-        <button id="exportJsonBtn">JSON 내보내기</button>
-        <button id="importJsonBtn">JSON 불러오기</button>
-        <button id="clearStorageBtn">자동저장 초기화</button>
-      </div>
-      <div class="hint">자동 저장이 켜져 있습니다. 같은 브라우저에서 다시 열면 마지막 상태를 불러옵니다.</div>
-      <div class="hint">[만든동물 : 두루미]   [랠리메이트동호회]   [Version 1.0]</div>
-    </div>
-
-    <div class="card side-card">
-      <div class="side-title">시합 순서</div>
-      <div class="schedule-scroll" id="scheduleWrap"></div>
-    </div>
-  </div>
+  <div class="hint" id="hint"></div>
+  <div class="footer-note">iPad/모바일에서 가로로 넘겨 보면서 입력할 수 있습니다.</div>
+  <div class="footer-note">만든동물 : 두루미, 랠리메이트 동호회, 대진표 Ver 0.0</div>
 </div>
 
-<input type="file" id="loadFile2" accept=".json,application/json" style="display:none">
-
 <script>
-const STORAGE_KEY = "pingpong_tournament_html_focus_v1";
-let n = 8, names = [], scores = [], matchMeta = [];
-let focusedScorer = null, focusedOpponent = null;
-
-function isPowerOfTwo(x){ return x > 0 && (x & (x - 1)) === 0; }
-function sanitize(v){ if(v == null) return ""; return String(v).replace(/[^0-9]/g, "").slice(0, 2); }
-function escapeHtml(str){ return String(str ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
+var n = 4;
+var names = [];
+var sc = [];
+var inputOrder = [];
 
 function initState(count){
-  n = count;
-  names = Array.from({length:n}, (_,i)=>`선수${i+1}`);
-  scores = Array.from({length:n}, ()=>Array.from({length:n}, ()=>({me:"", opp:""})));
-  matchMeta = [];
-  clearFocusHighlight();
-}
-
-function exportState(){ return { n, names, scores }; }
-function saveToStorage(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState())); }
-
-function loadFromStorage(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return false;
-    restoreState(JSON.parse(raw));
-    return true;
-  }catch(e){ return false; }
-}
-
-function restoreState(data){
-  const count = parseInt(data.n, 10);
-  if(isNaN(count) || count < 2 || count > 20) return;
-  initState(count);
-  document.getElementById("pcount").value = count;
-  if(Array.isArray(data.names)){
-    for(let i=0;i<Math.min(count, data.names.length);i++) names[i] = data.names[i] || `선수${i+1}`;
+  var i, j;
+  names = [];
+  sc = [];
+  for(i=0;i<count;i++){ names.push('선수' + (i+1)); }
+  for(i=0;i<count;i++){
+    var row = [];
+    for(j=0;j<count;j++){ row.push({me:'', opp:''}); }
+    sc.push(row);
   }
-  if(Array.isArray(data.scores)){
-    for(let i=0;i<Math.min(count, data.scores.length);i++){
-      for(let j=0;j<Math.min(count, data.scores[i].length);j++){
-        const it = data.scores[i][j];
-        if(it && typeof it === "object"){
-          scores[i][j].me = sanitize(it.me || "");
-          scores[i][j].opp = sanitize(it.opp || "");
-        }
-      }
+}
+
+function isEditable(i, j){ return i < j; }
+
+function sanitizeScore(val){
+  if(val === null || typeof val === 'undefined' || val === '') return '';
+  return String(val).replace(/[^0-9]/g, '').slice(0, 2);
+}
+
+function buildInputOrder(){
+  inputOrder = [];
+  var i, j;
+  for(i=0;i<n-1;i++){
+    for(j=i+1;j<n;j++){
+      inputOrder.push({i:i, j:j, role:'me'});
+      inputOrder.push({i:i, j:j, role:'opp'});
     }
   }
-  for(let i=0;i<count;i++){
-    for(let j=i+1;j<count;j++){
-      scores[j][i].me = scores[i][j].opp;
-      scores[j][i].opp = scores[i][j].me;
-    }
+}
+
+function focusNext(i,j,role){
+  var cur = -1, k, nx, el;
+  for(k=0;k<inputOrder.length;k++){
+    if(inputOrder[k].i===i && inputOrder[k].j===j && inputOrder[k].role===role){ cur = k; break; }
   }
-  renderAll();
-}
-
-function buildNew(){
-  const count = parseInt(document.getElementById("pcount").value, 10);
-  if(isNaN(count) || count < 2 || count > 20){
-    alert("참가자 수는 2명~20명 사이여야 합니다.");
-    return;
-  }
-  initState(count);
-  renderAll();
-  saveToStorage();
-}
-
-function onNameChange(idx, value){
-  names[idx] = value.trim() || `선수${idx+1}`;
-  syncNames();
-  renderSchedule();
-  updateCurrentNext();
-  saveToStorage();
-}
-
-function syncNames(){
-  document.querySelectorAll(".name-sync").forEach(el=>{
-    const idx = parseInt(el.dataset.idx, 10);
-    if(!isNaN(idx)) el.textContent = `${idx+1}\n${names[idx]}`;
-  });
-  applyFocusHighlight();
-}
-
-function renderNames(){
-  const wrap = document.getElementById("namesGrid");
-  wrap.innerHTML = "";
-  for(let i=0;i<n;i++){
-    const item = document.createElement("div");
-    item.className = "name-item";
-    item.innerHTML = `<div class="name-badge">${i+1}번</div><input type="text" value="${escapeHtml(names[i])}">`;
-    item.querySelector("input").addEventListener("input", e=>onNameChange(i, e.target.value));
-    wrap.appendChild(item);
+  if(cur < 0) return;
+  for(k=cur+1;k<inputOrder.length;k++){
+    nx = inputOrder[k];
+    el = document.getElementById('inp-' + nx.i + '-' + nx.j + '-' + nx.role);
+    if(el && !el.readOnly){ el.focus(); if(el.select) el.select(); return; }
   }
 }
 
-function generatePreferredOrderAnyN(count){
-  const pairs = [];
-  const addPair = (a, b) => {
-    if(a >= 0 && b >= 0 && a < count && b < count && a !== b){
-      const p = [Math.min(a,b), Math.max(a,b)];
-      if(!pairs.some(x => x[0] === p[0] && x[1] === p[1])) pairs.push(p);
-    }
-  };
-
-  function buildBlock(start, size){
-    if(size < 2) return;
-    const half = Math.floor(size / 2);
-    buildBlock(start, half);
-    buildBlock(start + half, half);
-    for(let i=0;i<half;i++) addPair(start + i, start + half + i);
-    for(let gap=1;gap<half;gap++){
-      for(let i=0;i<half-gap;i++){
-        addPair(start + i, start + half + i + gap);
-        addPair(start + i + gap, start + half + i);
-      }
-    }
+function focusPrev(i,j,role){
+  var cur = -1, k, pv, el;
+  for(k=0;k<inputOrder.length;k++){
+    if(inputOrder[k].i===i && inputOrder[k].j===j && inputOrder[k].role===role){ cur = k; break; }
   }
-
-  let size = 1;
-  while(size < count) size *= 2;
-  buildBlock(0, size);
-
-  for(let i=0;i<count;i++){
-    for(let j=i+1;j<count;j++){
-      if(!pairs.some(x => x[0] === i && x[1] === j)) pairs.push([i,j]);
-    }
+  if(cur <= 0) return;
+  for(k=cur-1;k>=0;k--){
+    pv = inputOrder[k];
+    el = document.getElementById('inp-' + pv.i + '-' + pv.j + '-' + pv.role);
+    if(el && !el.readOnly){ el.focus(); if(el.select) el.select(); return; }
   }
-  return pairs;
 }
 
-function getScheduleRounds(){
-  const orderedPairs = generatePreferredOrderAnyN(n);
-  const rounds = [];
-  let currentRound = [], used = new Set();
-
-  orderedPairs.forEach(([a,b])=>{
-    if(!used.has(a) && !used.has(b)){
-      currentRound.push([a,b]);
-      used.add(a); used.add(b);
-    }else{
-      if(currentRound.length) rounds.push(currentRound);
-      currentRound = [[a,b]];
-      used = new Set([a,b]);
-    }
-  });
-  if(currentRound.length) rounds.push(currentRound);
-  return rounds;
-}
-
-function renderTable(){
-  let html = '<table><thead><tr><th class="head-corner"><div class="corner-line"></div><div class="corner-top">상대</div><div class="corner-bottom">본인</div></th>';
-  for(let j=0;j<n;j++){
-    html += `<th class="head-name"><span class="name-sync" data-idx="${j}">${j+1}\n${escapeHtml(names[j])}</span></th>`;
-  }
-  html += '<th class="stat-head">승패 / 세트</th><th class="stat-head">순위</th></tr></thead><tbody>';
-
-  for(let i=0;i<n;i++){
-    html += `<tr><td class="row-name"><span class="name-sync" data-idx="${i}">${i+1}\n${escapeHtml(names[i])}</span></td>`;
-    for(let j=0;j<n;j++){
-      if(i === j){ html += '<td class="diag"></td>'; continue; }
-      const editable = i < j, me = scores[i][j].me || "", opp = scores[i][j].opp || "", cls = editable ? "game" : "game auto";
-      if(editable){
-        html += `<td class="${cls}"><div class="game-wrap"><div class="score-line">
-        <input class="score-input" inputmode="numeric" id="inp-${i}-${j}-me" value="${escapeHtml(me)}">
-        <span class="score-sep">:</span>
-        <input class="score-input" inputmode="numeric" id="inp-${i}-${j}-opp" value="${escapeHtml(opp)}">
-        </div><span class="badge empty" id="badge-${i}-${j}">-</span></div></td>`;
-      }else{
-        html += `<td class="${cls}"><div class="game-wrap"><div class="score-line">
-        <input class="score-input" readonly value="${escapeHtml(me)}">
-        <span class="score-sep">:</span>
-        <input class="score-input" readonly value="${escapeHtml(opp)}">
-        </div><span class="badge empty" id="badge-${i}-${j}">-</span></div></td>`;
-      }
-    }
-    html += `<td class="stat-cell"><div class="stat-main" id="wl-${i}">-</div><div class="stat-sub" id="set-${i}"></div></td>`;
-    html += `<td class="stat-cell"><div class="rank rn" id="rank-${i}">-</div></td></tr>`;
-  }
-  html += '</tbody></table>';
-  document.getElementById("tableWrap").innerHTML = html;
-
-  for(let i=0;i<n;i++){
-    for(let j=i+1;j<n;j++){
-      const me = document.getElementById(`inp-${i}-${j}-me`);
-      const opp = document.getElementById(`inp-${i}-${j}-opp`);
-
-      me.addEventListener("input", e=>{ onScoreInput(i, j, "me", e.target.value); e.target.value = scores[i][j].me; });
-      opp.addEventListener("input", e=>{ onScoreInput(i, j, "opp", e.target.value); e.target.value = scores[i][j].opp; });
-
-      me.addEventListener("focus", ()=>setFocusHighlight(i, j, "me"));
-      opp.addEventListener("focus", ()=>setFocusHighlight(i, j, "opp"));
-      me.addEventListener("blur", ()=>delayedClearIfNoFocus());
-      opp.addEventListener("blur", ()=>delayedClearIfNoFocus());
-    }
-  }
-  applyFocusHighlight();
-}
-
-function renderSchedule(){
-  const wrap = document.getElementById("scheduleWrap");
-  wrap.innerHTML = "";
-  const rounds = getScheduleRounds();
-  matchMeta = [];
-  let order = 1;
-  rounds.forEach((roundMatches, ri)=>{
-    const rt = document.createElement("div");
-    rt.className = "round-title";
-    rt.textContent = `[라운드 ${ri+1}]`;
-    wrap.appendChild(rt);
-    roundMatches.forEach(([i,j])=>{
-      const row = document.createElement("div");
-      row.className = "match-row";
-      row.id = `match-row-${matchMeta.length}`;
-      row.innerHTML = `<input class="match-check" type="checkbox" disabled id="match-check-${matchMeta.length}">
-      <div class="match-order">${order}</div><div class="match-code">${i+1} vs ${j+1}</div>
-      <div class="match-name">${escapeHtml(names[i])} vs ${escapeHtml(names[j])}</div>`;
-      wrap.appendChild(row);
-      matchMeta.push([i,j]);
-      order++;
-    });
-  });
-}
-
-function setFocusHighlight(i, j, role){
-  focusedScorer = role === "me" ? i : j;
-  focusedOpponent = role === "me" ? j : i;
-  applyFocusHighlight();
-}
-
-function clearFocusHighlight(){
-  focusedScorer = null;
-  focusedOpponent = null;
-  applyFocusHighlight();
-}
-
-function delayedClearIfNoFocus(){
-  setTimeout(()=>{
-    const el = document.activeElement;
-    if(el && el.classList && el.classList.contains("score-input") && !el.readOnly) return;
-    clearFocusHighlight();
-  }, 20);
-}
-
-function applyFocusHighlight(){
-  document.querySelectorAll(".head-name,.row-name").forEach(el=>{
-    el.classList.remove("focus-player","focus-opp");
-  });
-  if(focusedOpponent !== null){
-    document.querySelectorAll(`.name-sync[data-idx="${focusedOpponent}"]`).forEach(el=>{
-      const cell = el.closest(".head-name,.row-name");
-      if(cell) cell.classList.add("focus-opp");
-    });
-  }
-  if(focusedScorer !== null){
-    document.querySelectorAll(`.name-sync[data-idx="${focusedScorer}"]`).forEach(el=>{
-      const cell = el.closest(".head-name,.row-name");
-      if(cell) cell.classList.add("focus-player");
-    });
+function handleKey(e, i, j, role){
+  var key = e.key || e.keyCode;
+  var isShiftTab = (key === 'Tab' && e.shiftKey);
+  if(key === 'Enter' || key === 'Tab' || key === 'ArrowRight' || key === 'ArrowDown' || key === 13 || key === 9 || key === 39 || key === 40){
+    if(e.preventDefault) e.preventDefault();
+    if(isShiftTab) focusPrev(i, j, role);
+    else focusNext(i, j, role);
+  }else if(key === 'ArrowLeft' || key === 'ArrowUp' || key === 37 || key === 38 || isShiftTab){
+    if(e.preventDefault) e.preventDefault();
+    focusPrev(i, j, role);
   }
 }
 
 function onScoreInput(i, j, role, val){
-  scores[i][j][role] = sanitize(val);
-  scores[j][i].me = scores[i][j].opp;
-  scores[j][i].opp = scores[i][j].me;
-  renderAll(false);
-  saveToStorage();
+  var clean = sanitizeScore(val);
+  sc[i][j][role] = clean;
+
+  var active = document.getElementById('inp-' + i + '-' + j + '-' + role);
+  if(active && active.value !== clean) active.value = clean;
+
+  sc[j][i].me = sc[i][j].opp;
+  sc[j][i].opp = sc[i][j].me;
+
+  var mirrorMeEl = document.getElementById('inp-' + j + '-' + i + '-me');
+  var mirrorOppEl = document.getElementById('inp-' + j + '-' + i + '-opp');
+  if(mirrorMeEl) mirrorMeEl.value = sc[j][i].me;
+  if(mirrorOppEl) mirrorOppEl.value = sc[j][i].opp;
+
+  updateAll();
 }
 
 function calcStats(){
-  const wins = Array(n).fill(0), losses = Array(n).fill(0), played = Array(n).fill(0), setWins = Array(n).fill(0), setLosses = Array(n).fill(0);
-  for(let i=0;i<n;i++){
-    for(let j=0;j<n;j++){
+  var wins = [], losses = [], played = [];
+  var setWins = [], setLosses = [];
+  var i, j, me, opp;
+  for(i=0;i<n;i++){
+    wins[i] = 0; losses[i] = 0; played[i] = 0;
+    setWins[i] = 0; setLosses[i] = 0;
+  }
+
+  for(i=0;i<n;i++){
+    for(j=0;j<n;j++){
       if(i === j) continue;
-      const me = parseInt(scores[i][j].me, 10), opp = parseInt(scores[i][j].opp, 10);
-      if(scores[i][j].me === "" || scores[i][j].opp === "" || isNaN(me) || isNaN(opp)) continue;
-      played[i]++; setWins[i] += me; setLosses[i] += opp;
-      if(me > opp) wins[i]++; else if(me < opp) losses[i]++;
+      me = parseInt(sc[i][j].me, 10);
+      opp = parseInt(sc[i][j].opp, 10);
+      if(isNaN(me) || isNaN(opp) || sc[i][j].me === '' || sc[i][j].opp === '') continue;
+
+      played[i]++;
+      setWins[i] += me;
+      setLosses[i] += opp;
+
+      if(me > opp) wins[i]++;
+      else if(me < opp) losses[i]++;
     }
   }
-  return {wins, losses, played, setWins, setLosses};
+  return {wins:wins, losses:losses, played:played, setWins:setWins, setLosses:setLosses};
 }
 
-function getDisplayRanks(stats){
-  const arr = [];
-  for(let i=0;i<n;i++) arr.push({i, w:stats.wins[i], l:stats.losses[i], p:stats.played[i], sw:stats.setWins[i], sl:stats.setLosses[i], sd:stats.setWins[i]-stats.setLosses[i]});
-  arr.sort((a,b)=>(b.w-a.w)||(b.sw-a.sw)||(b.sd-a.sd)||(a.l-b.l)||(a.i-b.i));
-  const ranks = Array(n).fill(0);
-  let dense = 0, prevKey = null;
-  arr.forEach(it=>{
-    const key = `${it.w}|${it.sw}|${it.sd}|${it.l}`;
-    if(key !== prevKey){ dense++; prevKey = key; }
-    ranks[it.i] = dense;
+function getRanks(wins, losses, played, setWins, setLosses){
+  var arr = [];
+  var i, rank = [];
+  for(i=0;i<n;i++){
+    arr.push({
+      i:i,
+      w:wins[i],
+      l:losses[i],
+      p:played[i],
+      sw:setWins[i],
+      sl:setLosses[i],
+      sd:setWins[i] - setLosses[i]
+    });
+  }
+
+  arr.sort(function(a, b){
+    if(b.w !== a.w) return b.w - a.w;
+    if(b.sw !== a.sw) return b.sw - a.sw;
+    if(b.sd !== a.sd) return b.sd - a.sd;
+    if(a.l !== b.l) return a.l - b.l;
+    return 0;
   });
-  return ranks;
+
+  for(i=0;i<n;i++){ rank[i] = 0; }
+  for(i=0;i<arr.length;i++){ rank[arr[i].i] = i + 1; }
+  return rank;
 }
 
-function getResult(i,j){
-  const me = parseInt(scores[i][j].me, 10), opp = parseInt(scores[i][j].opp, 10);
-  if(scores[i][j].me === "" || scores[i][j].opp === "" || isNaN(me) || isNaN(opp)) return "";
-  if(me > opp) return "win";
-  if(me < opp) return "lose";
-  return "draw";
+function getResult(i, j){
+  var me = parseInt(sc[i][j].me, 10);
+  var opp = parseInt(sc[i][j].opp, 10);
+  if(sc[i][j].me === '' || sc[i][j].opp === '') return '';
+  if(isNaN(me) || isNaN(opp)) return '';
+  if(me > opp) return 'win';
+  if(me < opp) return 'lose';
+  return 'draw';
 }
 
-function updateTableStats(){
-  const stats = calcStats(), ranks = getDisplayRanks(stats);
-  for(let i=0;i<n;i++){
-    for(let j=0;j<n;j++){
+function updateAll(){
+  var stats = calcStats();
+  var wins = stats.wins;
+  var losses = stats.losses;
+  var played = stats.played;
+  var setWins = stats.setWins;
+  var setLosses = stats.setLosses;
+  var ranks = getRanks(wins, losses, played, setWins, setLosses);
+
+  var i, j, badge, r, wlEl, rateEl, rankEl, rk;
+  for(i=0;i<n;i++){
+    for(j=0;j<n;j++){
       if(i === j) continue;
-      const badge = document.getElementById(`badge-${i}-${j}`);
+      badge = document.getElementById('badge-' + i + '-' + j);
       if(!badge) continue;
-      const r = getResult(i,j);
-      badge.className = "badge";
-      if(r === "win"){ badge.classList.add("win"); badge.textContent = "승"; }
-      else if(r === "lose"){ badge.classList.add("lose"); badge.textContent = "패"; }
-      else if(r === "draw"){ badge.classList.add("draw"); badge.textContent = "무"; }
-      else { badge.classList.add("empty"); badge.textContent = "-"; }
+
+      r = getResult(i, j);
+      if(r === 'win'){
+        badge.textContent = '승';
+        badge.className = 'result-badge badge-win';
+      }else if(r === 'lose'){
+        badge.textContent = '패';
+        badge.className = 'result-badge badge-lose';
+      }else if(r === 'draw'){
+        badge.textContent = '무';
+        badge.className = 'result-badge badge-draw';
+      }else{
+        badge.textContent = '-';
+        badge.className = 'result-badge badge-empty';
+      }
     }
-    document.getElementById(`wl-${i}`).textContent = stats.played[i] > 0 ? `${stats.wins[i]}승 ${stats.losses[i]}패` : "-";
-    document.getElementById(`set-${i}`).textContent = stats.played[i] > 0 ? `세트 ${stats.setWins[i]}승 ${stats.setLosses[i]}패` : "";
-    const rankEl = document.getElementById(`rank-${i}`);
-    if(stats.played[i] === 0){ rankEl.textContent = "-"; rankEl.className = "rank rn"; }
-    else{
-      const sameCount = ranks.filter(v=>v===ranks[i]).length;
-      rankEl.textContent = sameCount >= 2 ? `공동 ${ranks[i]}위` : `${ranks[i]}위`;
-      rankEl.className = "rank " + (ranks[i]===1?"r1":ranks[i]===2?"r2":ranks[i]===3?"r3":"rn");
+
+    wlEl = document.getElementById('wl-' + i);
+    rateEl = document.getElementById('rate-' + i);
+    rankEl = document.getElementById('rank-' + i);
+
+    if(wlEl) wlEl.textContent = played[i] > 0 ? (wins[i] + '승 ' + losses[i] + '패') : '-';
+    if(rateEl) rateEl.textContent = played[i] > 0 ? ('세트 ' + setWins[i] + '승 ' + setLosses[i] + '패') : '';
+
+    if(rankEl){
+      rk = ranks[i];
+      if(played[i] === 0){
+        rankEl.textContent = '-';
+        rankEl.className = 'rank-none';
+      }else if(rk === 1){
+        rankEl.textContent = '1위';
+        rankEl.className = 'rank-gold';
+      }else if(rk === 2){
+        rankEl.textContent = '2위';
+        rankEl.className = 'rank-silver';
+      }else if(rk === 3){
+        rankEl.textContent = '3위';
+        rankEl.className = 'rank-bronze';
+      }else{
+        rankEl.textContent = rk + '위';
+        rankEl.className = 'rank-other';
+      }
     }
   }
 }
 
-function updateScheduleChecks(){
-  let cur = null, next = null;
-  matchMeta.forEach(([i,j], idx)=>{
-    const done = scores[i][j].me !== "" && scores[i][j].opp !== "";
-    const chk = document.getElementById(`match-check-${idx}`), row = document.getElementById(`match-row-${idx}`);
-    if(chk) chk.checked = done;
-    if(row) row.classList.remove("current","next");
-    if(!done && cur === null) cur = idx;
-    else if(!done && next === null) next = idx;
-  });
-  if(cur !== null){
-    document.getElementById(`match-row-${cur}`)?.classList.add("current");
-    const [i,j] = matchMeta[cur];
-    document.getElementById("currentMatch").textContent = `현재 경기: ${i+1}번 ${names[i]} vs ${j+1}번 ${names[j]}`;
-  }else document.getElementById("currentMatch").textContent = "현재 경기: 모든 경기가 완료되었습니다";
-
-  if(next !== null){
-    document.getElementById(`match-row-${next}`)?.classList.add("next");
-    const [i,j] = matchMeta[next];
-    document.getElementById("nextMatch").textContent = `다음 경기: ${i+1}번 ${names[i]} vs ${j+1}번 ${names[j]}`;
-  }else document.getElementById("nextMatch").textContent = "다음 경기: -";
+function renderNames(){
+  var r = document.getElementById('nameRow');
+  var i, inp;
+  r.innerHTML = '';
+  for(i=0;i<n;i++){
+    inp = document.createElement('input');
+    inp.type = 'text';
+    inp.placeholder = '선수' + (i+1);
+    inp.value = names[i];
+    inp.setAttribute('data-i', i);
+    inp.oninput = function(){
+      var idx = parseInt(this.getAttribute('data-i'), 10);
+      names[idx] = this.value.replace(/^\s+|\s+$/g, '') || ('선수' + (idx+1));
+      syncNames();
+    };
+    r.appendChild(inp);
+  }
 }
 
-function updateCurrentNext(){ updateScheduleChecks(); }
+function syncNames(){
+  var els = document.querySelectorAll('.hdr-name');
+  var i, idx;
+  for(i=0;i<els.length;i++){
+    idx = parseInt(els[i].getAttribute('data-idx'), 10);
+    if(!isNaN(idx)) els[i].textContent = names[idx];
+  }
+}
 
-function renderAll(resetNames=true){
-  if(resetNames) renderNames();
-  renderTable();
-  renderSchedule();
-  updateTableStats();
-  updateScheduleChecks();
+function renderTable(){
+  buildInputOrder();
+  var html = '';
+  var i, j, editable, tdClass;
+
+  html += '<table><thead><tr>';
+  html += '<th class="th-corner"><div class="th-corner-line"></div><div class="th-corner-inner"><span class="tr">상대</span><span class="bl">본인</span></div></th>';
+
+  for(j=0;j<n;j++){
+    html += '<th class="th-name"><span class="hdr-name" data-idx="' + j + '">' + names[j] + '</span></th>';
+  }
+
+  html += '<th class="th-stat">승패 / 세트</th><th class="th-stat">순위</th></tr></thead><tbody>';
+
+  for(i=0;i<n;i++){
+    html += '<tr><td class="td-rowname"><span class="hdr-name" data-idx="' + i + '">' + names[i] + '</span></td>';
+
+    for(j=0;j<n;j++){
+      if(i === j){
+        html += '<td class="td-diag"></td>';
+        continue;
+      }
+
+      editable = isEditable(i, j);
+      tdClass = editable ? 'td-game' : 'td-game auto-filled';
+
+      if(editable){
+        html += '<td class="' + tdClass + '"><div class="game-inner">';
+        html += '<div class="score-display">';
+        html += '<input type="number" inputmode="numeric" min="0" max="99" id="inp-' + i + '-' + j + '-me" data-role="me" placeholder="나">';
+        html += '<span class="score-sep">:</span>';
+        html += '<input type="number" inputmode="numeric" min="0" max="99" id="inp-' + i + '-' + j + '-opp" data-role="opp" placeholder="상">';
+        html += '</div><span class="result-badge badge-empty" id="badge-' + i + '-' + j + '">-</span></div></td>';
+      }else{
+        html += '<td class="' + tdClass + '"><div class="game-inner">';
+        html += '<div class="score-display">';
+        html += '<input type="number" inputmode="numeric" id="inp-' + i + '-' + j + '-me" readonly tabindex="-1" placeholder="-">';
+        html += '<span class="score-sep">:</span>';
+        html += '<input type="number" inputmode="numeric" id="inp-' + i + '-' + j + '-opp" readonly tabindex="-1" placeholder="-">';
+        html += '</div><span class="result-badge badge-empty" id="badge-' + i + '-' + j + '">-</span></div></td>';
+      }
+    }
+
+    html += '<td class="td-stat"><div class="wl-text" id="wl-' + i + '">-</div><div class="rate-text" id="rate-' + i + '"></div></td>';
+    html += '<td class="td-stat"><span id="rank-' + i + '" class="rank-none">-</span></td></tr>';
+  }
+
+  html += '</tbody></table>';
+  document.getElementById('tbl').innerHTML = html;
+  bindInputs();
+}
+
+function bindInputs(){
+  var i, j, meEl, oppEl;
+  for(i=0;i<n;i++){
+    for(j=0;j<n;j++){
+      if(!isEditable(i,j)) continue;
+
+      meEl = document.getElementById('inp-' + i + '-' + j + '-me');
+      oppEl = document.getElementById('inp-' + i + '-' + j + '-opp');
+
+      (function(ii, jj, el){
+        el.oninput = function(){ onScoreInput(ii, jj, 'me', this.value); };
+        el.onkeydown = function(e){ handleKey(e || window.event, ii, jj, 'me'); };
+        el.onfocus = function(){ if(this.select) this.select(); };
+      })(i, j, meEl);
+
+      (function(ii, jj, el){
+        el.oninput = function(){ onScoreInput(ii, jj, 'opp', this.value); };
+        el.onkeydown = function(e){ handleKey(e || window.event, ii, jj, 'opp'); };
+        el.onfocus = function(){ if(this.select) this.select(); };
+      })(i, j, oppEl);
+    }
+  }
 }
 
 function resetScores(){
-  for(let i=0;i<n;i++) for(let j=0;j<n;j++){ scores[i][j].me = ""; scores[i][j].opp = ""; }
-  clearFocusHighlight();
-  renderAll(false);
-  saveToStorage();
+  var i, j;
+  for(i=0;i<n;i++){
+    for(j=0;j<n;j++){
+      sc[i][j].me = '';
+      sc[i][j].opp = '';
+    }
+  }
+  var inputs = document.querySelectorAll('input[data-role]');
+  for(i=0;i<inputs.length;i++){ inputs[i].value = ''; }
+  var readonlys = document.querySelectorAll('.td-game.auto-filled input');
+  for(i=0;i<readonlys.length;i++){ readonlys[i].value = ''; }
+  updateAll();
 }
 
-function downloadJson(){
-  const blob = new Blob([JSON.stringify(exportState(), null, 2)], {type:"application/json;charset=utf-8"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "탁구대진표.json";
-  a.click();
-  URL.revokeObjectURL(a.href);
+function build(){
+  var val = parseInt(document.getElementById('pcount').value, 10);
+  var hint = document.getElementById('hint');
+
+  if(isNaN(val) || val < 2){
+    hint.textContent = '참가자 수는 2명 이상이어야 합니다.';
+    return;
+  }
+  if(val > 20){
+    hint.textContent = '참가자 수는 최대 20명까지 입력 가능합니다.';
+    return;
+  }
+
+  hint.textContent = '';
+  n = val;
+  initState(n);
+  renderNames();
+  renderTable();
+  updateAll();
 }
 
-function importJsonFile(file){
-  const reader = new FileReader();
-  reader.onload = e=>{
-    try{ restoreState(JSON.parse(e.target.result)); saveToStorage(); }
-    catch(err){ alert("JSON 파일을 읽지 못했습니다."); }
-  };
-  reader.readAsText(file, "utf-8");
-}
+document.getElementById('buildBtn').onclick = build;
+document.getElementById('resetBtn').onclick = resetScores;
 
-function clearStorage(){ localStorage.removeItem(STORAGE_KEY); alert("자동 저장 데이터를 지웠습니다."); }
+window.addEventListener('load', function(){
+  var splash = document.getElementById('splash');
+  var mainWrap = document.getElementById('mainWrap');
+  var splashImg = splash ? splash.querySelector('img') : null;
+  var appStarted = false;
+  var GIF_DURATION_MS = 11050; // pingpong.gif 실제 재생 길이 기준
 
-function downloadCurrentHtml(){
-  const blob = new Blob([document.documentElement.outerHTML], {type:"text/html;charset=utf-8"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "탁구대진표_HTML완성판.html";
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
+  function startApp(){
+    if(appStarted) return;
+    appStarted = true;
+    if(splash) splash.classList.add('hidden');
+    if(mainWrap) mainWrap.classList.remove('hidden');
+    build();
+  }
 
-document.getElementById("buildBtn").addEventListener("click", buildNew);
-document.getElementById("resetBtn").addEventListener("click", resetScores);
-document.getElementById("saveBtn").addEventListener("click", downloadJson);
-document.getElementById("loadBtn").addEventListener("click", ()=>document.getElementById("loadFile").click());
-document.getElementById("loadFile").addEventListener("change", e=>{
-  const file = e.target.files && e.target.files[0];
-  if(file) importJsonFile(file);
-  e.target.value = "";
+  if(splashImg){
+    splashImg.addEventListener('error', function(){
+      startApp();
+    });
+  }
+
+  setTimeout(function(){
+    startApp();
+  }, GIF_DURATION_MS);
 });
-document.getElementById("exportJsonBtn").addEventListener("click", downloadJson);
-document.getElementById("importJsonBtn").addEventListener("click", ()=>document.getElementById("loadFile").click());
-document.getElementById("clearStorageBtn").addEventListener("click", clearStorage);
-document.getElementById("downloadHtmlBtn").addEventListener("click", downloadCurrentHtml);
-
-if(!loadFromStorage()){
-  initState(parseInt(document.getElementById("pcount").value, 10) || 8);
-  renderAll();
-}
 </script>
 </body>
 </html>
